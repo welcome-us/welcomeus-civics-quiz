@@ -1,26 +1,186 @@
 @import "tailwindcss";
 
+/* ── Civic Warmth palette ──────────────────────────────────────────────
+   Warm cream paper, deep navy ink, a welcoming blue, and a warm coral
+   accent. Dignified but human — inspired by welcome.us's inclusive tone. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --paper: #fbf6ec;
+  --paper-deep: #f3e9d8;
+  --surface: #fffdf8;
+  --ink: #16243f;
+  --ink-soft: #5a6178;
+  --ink-faint: #8d93a6;
+  --brand: #2353e0;
+  --brand-deep: #163a9e;
+  --accent: #e2553a;
+  --accent-soft: #f6d9cf;
+  --gold: #e1a128;
+  --correct: #1c7c4a;
+  --correct-soft: #d8eede;
+  --wrong: #c23a22;
+  --wrong-soft: #f6dad2;
+  --line: rgba(22, 36, 63, 0.12);
+  --line-strong: rgba(22, 36, 63, 0.22);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-ink-faint: var(--ink-faint);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-gold: var(--gold);
+  --color-correct: var(--correct);
+  --color-correct-soft: var(--correct-soft);
+  --color-wrong: var(--wrong);
+  --color-wrong-soft: var(--wrong-soft);
+  --color-line: var(--line);
+
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: light;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  /* Atmosphere: two faint warm glows + a hair-fine grid, so the cream never
+     reads as a flat fill. */
+  background-image:
+    radial-gradient(
+      62rem 42rem at 82% -8%,
+      rgba(35, 83, 224, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      54rem 40rem at -6% 108%,
+      rgba(226, 85, 58, 0.09),
+      transparent 60%
+    ),
+    linear-gradient(var(--line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    44px 44px,
+    44px 44px;
+  background-position:
+    0 0,
+    0 0,
+    -1px -1px,
+    -1px -1px;
+  background-attachment: fixed;
+}
+
+/* The grid is decorative; keep it whisper-faint. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(
+    120% 90% at 50% 0%,
+    transparent 55%,
+    rgba(22, 36, 63, 0.05) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────── */
+@keyframes float-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes sheen {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+.animate-float-up {
+  animation: float-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-scale-in {
+  animation: scale-in 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.35s ease both;
+}
+.animate-pop {
+  animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Larger, calmer focus ring for keyboard users (accessibility-first audience). */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--ink);
 }
