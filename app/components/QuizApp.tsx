@@ -1,0 +1,217 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+import { scoreAnswer } from "@/lib/quiz/scoring";
+import {
+  PASS_THRESHOLD,
+  TOTAL_QUESTIONS,
+  computeProgress,
+  evaluateStatus,
+  sampleQuestions,
+} from "@/lib/quiz/state";
+import type {
+  AnsweredQuestion,
+  Feedback,
+  Question,
+  QuizStatus,
+} from "@/lib/quiz/types";
+import FeedbackPanel from "./FeedbackPanel";
+import QuestionCard from "./QuestionCard";
+import ResultScreen from "./ResultScreen";
+import StartModal from "./StartModal";
+import Wordmark, { StarMark } from "./Wordmark";
+
+type Phase = "intro" | "question" | "feedback" | "result";
+
+interface Session {
+  questions: Question[];
+  index: number;
+  correct: number;
+  wrong: number;
+  results: AnsweredQuestion[];
+  status: QuizStatus;
+}
+
+function newSession(bank: Question[]): Session {
+  return {
+    questions: sampleQuestions(bank),
+    index: 0,
+    correct: 0,
+    wrong: 0,
+    results: [],
+    status: "IN_PROGRESS",
+  };
+}
+
+export default function QuizApp({ bank }: { bank: Question[] }) {
+  const [phase, setPhase] = useState<Phase>("intro");
+  const [modalOpen, setModalOpen] = useState(true);
+  const [session, setSession] = useState<Session | null>(null);
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const [lastAnswer, setLastAnswer] = useState("");
+
+  const start = useCallback(() => {
+    setSession(newSession(bank));
+    setFeedback(null);
+    setModalOpen(false);
+    setPhase("question");
+  }, [bank]);
+
+  const handleSubmit = useCallback(
+    (answer: string) => {
+      if (!session) return;
+      const question = session.questions[session.index];
+      const correct = scoreAnswer(answer, question.acceptableAnswers);
+
+      const correctCount = session.correct + (correct ? 1 : 0);
+      const wrongCount = session.wrong + (correct ? 0 : 1);
+      const status = evaluateStatus(correctCount, wrongCount);
+      const results = [...session.results, { question, userAnswer: answer, correct }];
+
+      setSession({
+        ...session,
+        correct: correctCount,
+        wrong: wrongCount,
+        results,
+        status,
+      });
+      setFeedback({
+        correct,
+        acceptableAnswers: question.acceptableAnswers,
+        explanation: question.explanation,
+        status,
+        progress: computeProgress(correctCount, wrongCount),
+      });
+      setLastAnswer(answer);
+      setPhase("feedback");
+    },
+    [session],
+  );
+
+  const handleNext = useCallback(() => {
+    if (!session) return;
+    if (session.status !== "IN_PROGRESS") {
+      setPhase("result");
+      return;
+    }
+    setSession({ ...session, index: session.index + 1 });
+    setFeedback(null);
+    setPhase("question");
+  }, [session]);
+
+  const retry = useCallback(() => {
+    setSession(newSession(bank));
+    setFeedback(null);
+    setPhase("question");
+  }, [bank]);
+
+  const backToStart = useCallback(() => {
+    setPhase("intro");
+    setSession(null);
+    setFeedback(null);
+    setModalOpen(true);
+  }, []);
+
+  const current = session?.questions[session.index];
+  const isTerminal = session ? session.status !== "IN_PROGRESS" : false;
+
+  return (
+    <div className="relative z-10 flex min-h-dvh flex-col">
+      <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-5 pt-6 sm:px-6">
+        <button
+          type="button"
+          onClick={backToStart}
+          className="rounded-lg transition-opacity hover:opacity-80"
+          aria-label="Back to start"
+        >
+          <Wordmark />
+        </button>
+        {phase !== "intro" && (
+          <button
+            type="button"
+            onClick={backToStart}
+            className="font-sans text-sm font-medium text-ink-faint transition-colors hover:text-ink"
+          >
+            Restart
+          </button>
+        )}
+      </header>
+
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center px-5 py-8 sm:px-6">
+        {phase === "intro" && <IntroHero onStart={() => setModalOpen(true)} />}
+
+        {phase === "question" && current && session && (
+          <QuestionCard
+            question={current}
+            index={session.index}
+            results={session.results}
+            correct={session.correct}
+            onSubmit={handleSubmit}
+          />
+        )}
+
+        {phase === "feedback" && current && session && feedback && (
+          <FeedbackPanel
+            question={current}
+            userAnswer={lastAnswer}
+            feedback={feedback}
+            index={session.index}
+            results={session.results}
+            isTerminal={isTerminal}
+            onNext={handleNext}
+          />
+        )}
+
+        {phase === "result" && session && session.status !== "IN_PROGRESS" && (
+          <ResultScreen
+            status={session.status}
+            results={session.results}
+            correct={session.correct}
+            onRetry={retry}
+          />
+        )}
+      </main>
+
+      <footer className="mx-auto w-full max-w-2xl px-5 pb-6 text-center sm:px-6">
+        <p className="font-sans text-xs text-ink-faint">
+          Practice tool · Questions from the official USCIS civics bank (public
+          domain). Not affiliated with USCIS.
+        </p>
+      </footer>
+
+      <StartModal open={modalOpen} onConfirm={start} onCancel={() => setModalOpen(false)} />
+    </div>
+  );
+}
+
+function IntroHero({ onStart }: { onStart: () => void }) {
+  return (
+    <div className="animate-float-up text-center">
+      <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft shadow-sm">
+        <StarMark className="h-3.5 w-3.5 text-accent" />
+        U.S. Naturalization · Civics
+      </span>
+
+      <h1 className="mt-6 text-balance font-display text-5xl font-semibold leading-[1.05] text-ink sm:text-6xl">
+        Practice the civics test,
+        <br />
+        <span className="text-brand">welcome home.</span>
+      </h1>
+
+      <p className="mx-auto mt-5 max-w-md text-pretty font-sans text-lg leading-relaxed text-ink-soft">
+        {TOTAL_QUESTIONS} questions, {PASS_THRESHOLD} to pass. Type your answers
+        in your own words — we grade them the way a fair officer would.
+      </p>
+
+      <button
+        type="button"
+        onClick={onStart}
+        className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-brand px-8 py-4 font-sans text-base font-semibold text-paper shadow-lg transition-all hover:bg-brand-deep hover:shadow-xl active:scale-[0.98]"
+      >
+        <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
+        Start practicing
+        <span aria-hidden="true">→</span>
+      </button>
+    </div>
+  );
+}
