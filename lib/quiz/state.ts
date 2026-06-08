@@ -48,11 +48,25 @@ export function shuffle<T>(items: readonly T[]): T[] {
  * excluded (plan.md §6.2 Option A) because their official answer is
  * "answers will vary" and can't be auto-graded. Falls back gracefully if the
  * gradeable pool is smaller than TOTAL_QUESTIONS.
+ *
+ * The session always opens with an EASY question (randomly chosen among them)
+ * so the first prompt feels approachable. If no EASY question is available,
+ * the order is left fully random.
  */
 export function sampleQuestions(
   bank: readonly Question[],
   count = TOTAL_QUESTIONS,
 ): Question[] {
   const gradeable = bank.filter((q) => !q.dynamic && !q.stateSpecific);
-  return shuffle(gradeable).slice(0, Math.min(count, gradeable.length));
+  const shuffled = shuffle(gradeable);
+
+  // Pull the first EASY question (already random, since the pool is shuffled)
+  // to the front of the lineup.
+  const easyIndex = shuffled.findIndex((q) => q.difficulty === "EASY");
+  if (easyIndex > 0) {
+    const [easy] = shuffled.splice(easyIndex, 1);
+    shuffled.unshift(easy);
+  }
+
+  return shuffled.slice(0, Math.min(count, shuffled.length));
 }
