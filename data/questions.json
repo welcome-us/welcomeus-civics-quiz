@@ -23,7 +23,8 @@
     "explanation": "The U.S. Constitution is the highest law in the country; all other federal, state, and local laws must agree with it.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-003",
@@ -92,7 +93,8 @@
     "explanation": "There are 27 amendments to the Constitution; the most recent (the 27th) was ratified in 1992.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-008",
@@ -161,7 +163,8 @@
     "explanation": "The United States has a capitalist, market-based economic system.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-013",
@@ -274,7 +277,8 @@
     "explanation": "Congress writes laws, declares war, and controls federal spending through the budget.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-021",
@@ -473,7 +477,8 @@
     "explanation": "The President serves a four-year term.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-037",
@@ -551,7 +556,8 @@
     "explanation": "The President can veto bills passed by Congress; Congress can override a veto with a two-thirds vote in both chambers.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-045",
@@ -675,7 +681,8 @@
     "explanation": "The Supreme Court is the highest court in the United States.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-053",
@@ -866,7 +873,8 @@
     "explanation": "The Pledge expresses loyalty to the United States and to the American flag that represents it.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-067",
@@ -993,7 +1001,8 @@
     "explanation": "American Indians (Native Americans) lived throughout the Americas before European arrival.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-075",
@@ -1053,7 +1062,8 @@
     "explanation": "Thomas Jefferson was the principal author of the Declaration of Independence.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-079",
@@ -1177,7 +1187,8 @@
     "explanation": "Washington led the Continental Army, presided over the Constitutional Convention, was the first U.S. President, and is called the “Father of Our Country.”",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-087",
@@ -1300,7 +1311,8 @@
     "explanation": "Lincoln was the 16th President, led the Union through the Civil War, issued the Emancipation Proclamation, and delivered the Gettysburg Address.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-095",
@@ -1559,7 +1571,8 @@
     "explanation": "Dr. King led the civil rights movement, working through nonviolent protest for equality for all Americans.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-114",
@@ -1586,7 +1599,8 @@
     "explanation": "On 9/11, terrorists hijacked four planes, striking the World Trade Center and the Pentagon; a fourth crashed in Pennsylvania after passengers fought back.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-116",
@@ -1692,7 +1706,8 @@
     "explanation": "The 13 stripes on the U.S. flag represent the 13 original colonies.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-122",
@@ -1766,7 +1781,8 @@
     "explanation": "Federal holidays include New Year’s Day, MLK Day, Presidents Day, Memorial Day, Juneteenth, Independence Day, Labor Day, Columbus Day, Veterans Day, Thanksgiving, and Christmas.",
     "dynamic": false,
     "stateSpecific": false,
-    "lastVerified": "2026-05-29"
+    "lastVerified": "2026-05-29",
+    "difficulty": "EASY"
   },
   {
     "id": "q-127",

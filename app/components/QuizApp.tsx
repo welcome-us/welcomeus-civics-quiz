@@ -1,7 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
-import { scoreAnswer } from "@/lib/quiz/scoring";
+import { useCallback, useState } from "react";
+import { gradeAnswer } from "@/lib/quiz/grade-client";
 import {
   PASS_THRESHOLD,
   TOTAL_QUESTIONS,
@@ -49,6 +49,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
   const [session, setSession] = useState<Session | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [lastAnswer, setLastAnswer] = useState("");
+  const [grading, setGrading] = useState(false);
 
   const start = useCallback(() => {
     setSession(newSession(bank));
@@ -58,11 +59,15 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
   }, [bank]);
 
   const handleSubmit = useCallback(
-    (answer: string) => {
-      if (!session) return;
+    async (answer: string) => {
+      if (!session || grading) return;
       const question = session.questions[session.index];
-      const correct = scoreAnswer(answer, question.acceptableAnswers);
 
+      setGrading(true);
+      const verdict = await gradeAnswer(question, answer);
+      setGrading(false);
+
+      const { correct } = verdict;
       const correctCount = session.correct + (correct ? 1 : 0);
       const wrongCount = session.wrong + (correct ? 0 : 1);
       const status = evaluateStatus(correctCount, wrongCount);
@@ -81,11 +86,12 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
         explanation: question.explanation,
         status,
         progress: computeProgress(correctCount, wrongCount),
+        reason: verdict.reason,
       });
       setLastAnswer(answer);
       setPhase("feedback");
     },
-    [session],
+    [session, grading],
   );
 
   const handleNext = useCallback(() => {
@@ -147,6 +153,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
             results={session.results}
             correct={session.correct}
             onSubmit={handleSubmit}
+            pending={grading}
           />
         )}
 
