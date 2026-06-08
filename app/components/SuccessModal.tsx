@@ -11,9 +11,14 @@ export interface SuccessFormData {
   marketingConsent: boolean;
 }
 
+export interface SuccessSubmitResult {
+  ok: boolean;
+  message?: string;
+}
+
 interface SuccessModalProps {
   open: boolean;
-  onSubmit: (data: SuccessFormData) => void;
+  onSubmit: (data: SuccessFormData) => Promise<SuccessSubmitResult> | SuccessSubmitResult;
   onClose: () => void;
 }
 
@@ -30,12 +35,16 @@ const EMPTY: SuccessFormData = {
 // parent, which is the single seam where a real submission can be wired in.
 export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalProps) {
   const [data, setData] = useState<SuccessFormData>(EMPTY);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const firstFieldRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
   // Clear fields and hand control back to the parent.
   const close = () => {
     setData(EMPTY);
+    setSubmitError(null);
+    setIsSubmitting(false);
     onClose();
   };
 
@@ -75,9 +84,24 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
   const set = <K extends keyof SuccessFormData>(key: K, value: SuccessFormData[K]) =>
     setData((d) => ({ ...d, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(data);
+    setSubmitError(null);
+    setIsSubmitting(true);
+
+    try {
+      const result = await onSubmit(data);
+      if (!result.ok) {
+        setSubmitError(result.message ?? "We couldn&apos;t send your results. Please try again.");
+        return;
+      }
+    } catch {
+      setSubmitError("We couldn&apos;t send your results. Please try again.");
+      return;
+    } finally {
+      setIsSubmitting(false);
+    }
+
     setData(EMPTY);
   };
 
@@ -171,7 +195,7 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
               type="checkbox"
               checked={data.marketingConsent}
               onChange={(e) => set("marketingConsent", e.target.checked)}
-              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line text-brand accent-[var(--brand)]"
+              className="mt-0.5 h-4 w-4 shrink-0 rounded border-line text-brand accent-brand"
             />
             <span className="font-sans text-sm leading-relaxed text-ink-soft">
               Yes, send me citizenship tips, resources, and occasional updates. You
@@ -179,20 +203,31 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
             </span>
           </label>
 
+          {submitError && (
+            <p
+              aria-live="polite"
+              className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-sans text-sm text-red-700"
+            >
+              {submitError}
+            </p>
+          )}
+
           <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={close}
+              disabled={isSubmitting}
               className="rounded-full px-5 py-3 font-sans text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
             >
               Maybe later
             </button>
             <button
               type="submit"
+              disabled={isSubmitting}
               className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-sans text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
             >
               <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
-              Send my results →
+              {isSubmitting ? "Sending..." : "Send my results →"}
             </button>
           </div>
         </form>

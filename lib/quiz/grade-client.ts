@@ -1,38 +1,45 @@
 // Client-side grading entry point used by the quiz UI.
 //
-// Calls the server Route Handler (Haiku verdict) and falls back to the
-// deterministic browser matcher if the API is unavailable — so the quiz keeps
-// working with no key, offline, or during an upstream outage.
+// The browser never holds the answer key. It posts the question id and the
+// user's answer to the server Route Handler, which looks up the acceptable
+// answers, grades (Haiku verdict, or a deterministic fallback when no key is
+// configured), and returns the verdict together with the answers + explanation
+// to reveal in the feedback panel.
 
-import { scoreAnswer } from "./scoring";
-import type { Question } from "./types";
+import type { PublicQuestion } from "./types";
 
 export interface Verdict {
   correct: boolean;
+  /** The answer key, returned only after grading so it can be shown as feedback. */
+  acceptableAnswers: string[];
+  explanation: string;
+  /** One-sentence verdict from the Haiku grader; absent on the offline fallback. */
   reason?: string;
 }
 
 export async function gradeAnswer(
-  question: Question,
+  question: PublicQuestion,
   userAnswer: string,
 ): Promise<Verdict> {
-  try {
-    const res = await fetch("/api/grade", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        question: question.question,
-        acceptableAnswers: question.acceptableAnswers,
-        userAnswer,
-      }),
-    });
-    if (!res.ok) throw new Error(`grade request failed: ${res.status}`);
+  const res = await fetch("/api/grade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ questionId: question.id, userAnswer }),
+  });
+  if (!res.ok) throw new Error(`grade request failed: ${res.status}`);
 
-    const data = (await res.json()) as Verdict;
-    if (typeof data.correct !== "boolean") throw new Error("bad verdict shape");
-    return data;
-  } catch {
-    // Offline / no key / upstream error → deterministic fallback.
-    return { correct: scoreAnswer(userAnswer, question.acceptableAnswers) };
+  const data = (await res.json()) as Partial<Verdict>;
+  if (
+    typeof data.correct !== "boolean" ||
+    !Array.isArray(data.acceptableAnswers) ||
+    typeof data.explanation !== "string"
+  ) {
+    throw new Error("bad verdict shape");
   }
+  return {
+    correct: data.correct,
+    acceptableAnswers: data.acceptableAnswers,
+    explanation: data.explanation,
+    reason: data.reason,
+  };
 }

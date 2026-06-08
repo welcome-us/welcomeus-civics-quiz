@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { gradeAnswer } from "@/lib/quiz/grade-client";
+import { submitSuccessModal } from "@/app/_actions/submit-success-modal";
 import {
   PASS_THRESHOLD,
   TOTAL_QUESTIONS,
@@ -12,20 +13,25 @@ import {
 import type {
   AnsweredQuestion,
   Feedback,
-  Question,
+  PublicQuestion,
   QuizStatus,
 } from "@/lib/quiz/types";
 import FeedbackPanel from "./FeedbackPanel";
 import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
 import StartModal from "./StartModal";
-import SuccessModal, { type SuccessFormData } from "./SuccessModal";
-import Wordmark, { StarMark } from "./Wordmark";
+import SuccessModal, {
+  type SuccessFormData,
+  type SuccessSubmitResult,
+} from "./SuccessModal";
+import { StarMark } from "./Wordmark";
+import WusLogo from "@/public/wus-logo.svg"
+import Image from "next/image";
 
 type Phase = "intro" | "question" | "feedback" | "result";
 
 interface Session {
-  questions: Question[];
+  questions: PublicQuestion[];
   index: number;
   correct: number;
   wrong: number;
@@ -33,7 +39,7 @@ interface Session {
   status: QuizStatus;
 }
 
-function newSession(bank: Question[]): Session {
+function newSession(bank: PublicQuestion[]): Session {
   return {
     questions: sampleQuestions(bank),
     index: 0,
@@ -44,18 +50,20 @@ function newSession(bank: Question[]): Session {
   };
 }
 
-export default function QuizApp({ bank }: { bank: Question[] }) {
+export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [modalOpen, setModalOpen] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [lastAnswer, setLastAnswer] = useState("");
   const [grading, setGrading] = useState(false);
+  const [gradeError, setGradeError] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
   const start = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
+    setGradeError(false);
     setModalOpen(false);
     setPhase("question");
   }, [bank]);
@@ -66,8 +74,19 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
       const question = session.questions[session.index];
 
       setGrading(true);
-      const verdict = await gradeAnswer(question, answer);
+      let verdict;
+      try {
+        verdict = await gradeAnswer(question, answer);
+      } catch (err) {
+        // Server unreachable — leave the user on the question to retry rather
+        // than silently scoring it. The answer key stays on the server.
+        console.error("grading failed:", err);
+        setGrading(false);
+        setGradeError(true);
+        return;
+      }
       setGrading(false);
+      setGradeError(false);
 
       const { correct } = verdict;
       const correctCount = session.correct + (correct ? 1 : 0);
@@ -84,8 +103,8 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
       });
       setFeedback({
         correct,
-        acceptableAnswers: question.acceptableAnswers,
-        explanation: question.explanation,
+        acceptableAnswers: verdict.acceptableAnswers,
+        explanation: verdict.explanation,
         status,
         progress: computeProgress(correctCount, wrongCount),
         reason: verdict.reason,
@@ -105,12 +124,14 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     }
     setSession({ ...session, index: session.index + 1 });
     setFeedback(null);
+    setGradeError(false);
     setPhase("question");
   }, [session]);
 
   const retry = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
+    setGradeError(false);
     setSuccessOpen(false);
     setPhase("question");
   }, [bank]);
@@ -123,10 +144,30 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     setModalOpen(true);
   }, []);
 
-  const handleSuccessSubmit = useCallback((data: SuccessFormData) => {
-    // Placeholder: no backend yet. Hand-off point for a real submission.
-    console.log("Civics quiz lead capture:", data);
+  const handleSuccessSubmit = useCallback(async (data: SuccessFormData): Promise<SuccessSubmitResult> => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    const result = await submitSuccessModal({
+      email: data.email,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      opt_out: !data.marketingConsent,
+      zip: data.zip,
+      utm_medium: searchParams.get("utm_medium") ?? "",
+      utm_campaign: searchParams.get("utm_campaign") ?? "",
+      utm_source: searchParams.get("utm_source") ?? "",
+      path: window.location.pathname + window.location.search,
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: "We couldn't send your details right now. Please try again.",
+      };
+    }
+
     setSuccessOpen(false);
+    return { ok: true };
   }, []);
 
   const current = session?.questions[session.index];
@@ -141,7 +182,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
           className="rounded-lg transition-opacity hover:opacity-80"
           aria-label="Back to start"
         >
-          <Wordmark />
+          <Image src={WusLogo} alt="Welcome.US" className="h-8 w-auto" />
         </button>
         {phase !== "intro" && (
           <button
@@ -165,6 +206,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
             correct={session.correct}
             onSubmit={handleSubmit}
             pending={grading}
+            error={gradeError}
           />
         )}
 
