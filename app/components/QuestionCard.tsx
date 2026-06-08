@@ -11,6 +11,8 @@ interface QuestionCardProps {
   results: AnsweredQuestion[];
   correct: number;
   onSubmit: (answer: string) => void;
+  /** True while the answer is being graded by the server. */
+  pending?: boolean;
 }
 
 export default function QuestionCard({
@@ -19,6 +21,7 @@ export default function QuestionCard({
   results,
   correct,
   onSubmit,
+  pending = false,
 }: QuestionCardProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -30,7 +33,7 @@ export default function QuestionCard({
   }, [question.id]);
 
   const trimmed = value.trim();
-  const canSubmit = trimmed.length > 0;
+  const canSubmit = trimmed.length > 0 && !pending;
 
   const submit = () => {
     if (canSubmit) onSubmit(trimmed);
@@ -93,9 +96,15 @@ export default function QuestionCard({
             type="button"
             onClick={submit}
             disabled={!canSubmit}
-            className="rounded-full bg-ink px-7 py-3.5 font-sans text-sm font-semibold text-paper shadow-md transition-all enabled:hover:bg-brand enabled:hover:shadow-lg enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-sans text-sm font-semibold text-paper shadow-md transition-all enabled:hover:bg-brand enabled:hover:shadow-lg enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
           >
-            Submit answer
+            {pending && (
+              <span
+                className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper"
+                aria-hidden="true"
+              />
+            )}
+            {pending ? "Grading…" : "Submit answer"}
           </button>
         </div>
       </div>

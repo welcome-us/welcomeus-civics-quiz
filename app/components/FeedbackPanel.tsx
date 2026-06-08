@@ -77,9 +77,11 @@ export default function FeedbackPanel({
               {correct ? "Correct" : "Not quite"}
             </p>
             <p className="mt-1 font-sans text-sm text-ink-soft">
-              {correct
-                ? "That's a valid answer."
-                : "Here's what the test is looking for."}
+              {feedback.reason
+                ? feedback.reason
+                : correct
+                  ? "That's a valid answer."
+                  : "Here's what the test is looking for."}
             </p>
           </div>
         </div>
