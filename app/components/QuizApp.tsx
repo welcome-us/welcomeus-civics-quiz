@@ -19,6 +19,7 @@ import FeedbackPanel from "./FeedbackPanel";
 import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
 import StartModal from "./StartModal";
+import SuccessModal, { type SuccessFormData } from "./SuccessModal";
 import Wordmark, { StarMark } from "./Wordmark";
 
 type Phase = "intro" | "question" | "feedback" | "result";
@@ -50,6 +51,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [lastAnswer, setLastAnswer] = useState("");
   const [grading, setGrading] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   const start = useCallback(() => {
     setSession(newSession(bank));
@@ -98,6 +100,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     if (!session) return;
     if (session.status !== "IN_PROGRESS") {
       setPhase("result");
+      if (session.status === "PASSED") setSuccessOpen(true);
       return;
     }
     setSession({ ...session, index: session.index + 1 });
@@ -108,6 +111,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
   const retry = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
+    setSuccessOpen(false);
     setPhase("question");
   }, [bank]);
 
@@ -115,7 +119,14 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     setPhase("intro");
     setSession(null);
     setFeedback(null);
+    setSuccessOpen(false);
     setModalOpen(true);
+  }, []);
+
+  const handleSuccessSubmit = useCallback((data: SuccessFormData) => {
+    // Placeholder: no backend yet. Hand-off point for a real submission.
+    console.log("Civics quiz lead capture:", data);
+    setSuccessOpen(false);
   }, []);
 
   const current = session?.questions[session.index];
@@ -187,6 +198,11 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
       </footer>
 
       <StartModal open={modalOpen} onConfirm={start} onCancel={() => setModalOpen(false)} />
+      <SuccessModal
+        open={successOpen}
+        onSubmit={handleSuccessSubmit}
+        onClose={() => setSuccessOpen(false)}
+      />
     </div>
   );
 }
