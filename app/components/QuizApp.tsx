@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { gradeAnswer } from "@/lib/quiz/grade-client";
+import { submitSuccessModal } from "@/app/_actions/submit-success-modal";
 import {
   PASS_THRESHOLD,
   TOTAL_QUESTIONS,
@@ -19,8 +20,13 @@ import FeedbackPanel from "./FeedbackPanel";
 import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
 import StartModal from "./StartModal";
-import SuccessModal, { type SuccessFormData } from "./SuccessModal";
-import Wordmark, { StarMark } from "./Wordmark";
+import SuccessModal, {
+  type SuccessFormData,
+  type SuccessSubmitResult,
+} from "./SuccessModal";
+import { StarMark } from "./Wordmark";
+import WusLogo from "@/public/wus-logo.svg"
+import Image from "next/image";
 
 type Phase = "intro" | "question" | "feedback" | "result";
 
@@ -123,10 +129,30 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     setModalOpen(true);
   }, []);
 
-  const handleSuccessSubmit = useCallback((data: SuccessFormData) => {
-    // Placeholder: no backend yet. Hand-off point for a real submission.
-    console.log("Civics quiz lead capture:", data);
+  const handleSuccessSubmit = useCallback(async (data: SuccessFormData): Promise<SuccessSubmitResult> => {
+    const searchParams = new URLSearchParams(window.location.search);
+
+    const result = await submitSuccessModal({
+      email: data.email,
+      first_name: data.firstName,
+      last_name: data.lastName,
+      opt_out: !data.marketingConsent,
+      zip: data.zip,
+      utm_medium: searchParams.get("utm_medium") ?? "",
+      utm_campaign: searchParams.get("utm_campaign") ?? "",
+      utm_source: searchParams.get("utm_source") ?? "",
+      path: window.location.pathname + window.location.search,
+    });
+
+    if (!result.ok) {
+      return {
+        ok: false,
+        message: "We couldn't send your details right now. Please try again.",
+      };
+    }
+
     setSuccessOpen(false);
+    return { ok: true };
   }, []);
 
   const current = session?.questions[session.index];
@@ -141,7 +167,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
           className="rounded-lg transition-opacity hover:opacity-80"
           aria-label="Back to start"
         >
-          <Wordmark />
+          <Image src={WusLogo} alt="Welcome.US" className="h-8 w-auto" />
         </button>
         {phase !== "intro" && (
           <button
