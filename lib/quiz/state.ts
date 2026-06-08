@@ -2,7 +2,7 @@
 // Mirrors the rules in plan.md §4: 20 questions, 12 to pass, end early on a
 // guaranteed win or a guaranteed loss.
 
-import type { Progress, Question, QuizStatus } from "./types";
+import type { Progress, PublicQuestion, QuizStatus } from "./types";
 
 export const TOTAL_QUESTIONS = 20;
 export const PASS_THRESHOLD = 12;
@@ -44,21 +44,21 @@ export function shuffle<T>(items: readonly T[]): T[] {
 }
 
 /**
- * Build a session's question set. Dynamic / state-specific questions are
- * excluded (plan.md §6.2 Option A) because their official answer is
- * "answers will vary" and can't be auto-graded. Falls back gracefully if the
- * gradeable pool is smaller than TOTAL_QUESTIONS.
+ * Build a session's question set from an already-gradeable pool. Dynamic /
+ * state-specific questions are excluded upstream (plan.md §6.2 Option A) before
+ * the bank reaches the client, because their official answer is "answers will
+ * vary" and can't be auto-graded. Falls back gracefully if the pool is smaller
+ * than TOTAL_QUESTIONS.
  *
  * The session always opens with an EASY question (randomly chosen among them)
  * so the first prompt feels approachable. If no EASY question is available,
  * the order is left fully random.
  */
 export function sampleQuestions(
-  bank: readonly Question[],
+  bank: readonly PublicQuestion[],
   count = TOTAL_QUESTIONS,
-): Question[] {
-  const gradeable = bank.filter((q) => !q.dynamic && !q.stateSpecific);
-  const shuffled = shuffle(gradeable);
+): PublicQuestion[] {
+  const shuffled = shuffle(bank);
 
   // Pull the first EASY question (already random, since the pool is shuffled)
   // to the front of the lineup.

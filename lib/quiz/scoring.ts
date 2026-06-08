@@ -1,10 +1,10 @@
 // Lenient, deterministic answer scoring (plan.md §5.2 "Stage 1").
 //
-// This runs in the browser for the v1 flow so the quiz works with no backend
-// or API key. It is intentionally generous: typos, casing, punctuation, the
-// optional "(parenthetical)" parts of USCIS answers, and extra filler words
-// must not cause a wrong mark. The function is the single seam where a
-// server-side LLM verdict (plan.md §5.4) can later be swapped in.
+// Runs server-side only (in the /api/grade Route Handler) as the fallback when
+// no API key is configured or the Haiku call fails — it never ships to the
+// browser, so the answer key stays on the server. It is intentionally
+// generous: typos, casing, punctuation, the optional "(parenthetical)" parts
+// of USCIS answers, and extra filler words must not cause a wrong mark.
 
 const FILLER_PREFIXES = [
   "the answer is",

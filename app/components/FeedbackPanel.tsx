@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { AnsweredQuestion, Feedback, Question } from "@/lib/quiz/types";
+import type { AnsweredQuestion, Feedback, PublicQuestion } from "@/lib/quiz/types";
 import ProgressBar from "./ProgressBar";
 
 interface FeedbackPanelProps {
-  question: Question;
+  question: PublicQuestion;
   userAnswer: string;
   feedback: Feedback;
   index: number;

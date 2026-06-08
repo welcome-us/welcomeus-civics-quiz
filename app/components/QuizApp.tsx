@@ -13,7 +13,7 @@ import {
 import type {
   AnsweredQuestion,
   Feedback,
-  Question,
+  PublicQuestion,
   QuizStatus,
 } from "@/lib/quiz/types";
 import FeedbackPanel from "./FeedbackPanel";
@@ -31,7 +31,7 @@ import Image from "next/image";
 type Phase = "intro" | "question" | "feedback" | "result";
 
 interface Session {
-  questions: Question[];
+  questions: PublicQuestion[];
   index: number;
   correct: number;
   wrong: number;
@@ -39,7 +39,7 @@ interface Session {
   status: QuizStatus;
 }
 
-function newSession(bank: Question[]): Session {
+function newSession(bank: PublicQuestion[]): Session {
   return {
     questions: sampleQuestions(bank),
     index: 0,
@@ -50,18 +50,20 @@ function newSession(bank: Question[]): Session {
   };
 }
 
-export default function QuizApp({ bank }: { bank: Question[] }) {
+export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [modalOpen, setModalOpen] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const [lastAnswer, setLastAnswer] = useState("");
   const [grading, setGrading] = useState(false);
+  const [gradeError, setGradeError] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
 
   const start = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
+    setGradeError(false);
     setModalOpen(false);
     setPhase("question");
   }, [bank]);
@@ -72,8 +74,19 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
       const question = session.questions[session.index];
 
       setGrading(true);
-      const verdict = await gradeAnswer(question, answer);
+      let verdict;
+      try {
+        verdict = await gradeAnswer(question, answer);
+      } catch (err) {
+        // Server unreachable — leave the user on the question to retry rather
+        // than silently scoring it. The answer key stays on the server.
+        console.error("grading failed:", err);
+        setGrading(false);
+        setGradeError(true);
+        return;
+      }
       setGrading(false);
+      setGradeError(false);
 
       const { correct } = verdict;
       const correctCount = session.correct + (correct ? 1 : 0);
@@ -90,8 +103,8 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
       });
       setFeedback({
         correct,
-        acceptableAnswers: question.acceptableAnswers,
-        explanation: question.explanation,
+        acceptableAnswers: verdict.acceptableAnswers,
+        explanation: verdict.explanation,
         status,
         progress: computeProgress(correctCount, wrongCount),
         reason: verdict.reason,
@@ -111,12 +124,14 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
     }
     setSession({ ...session, index: session.index + 1 });
     setFeedback(null);
+    setGradeError(false);
     setPhase("question");
   }, [session]);
 
   const retry = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
+    setGradeError(false);
     setSuccessOpen(false);
     setPhase("question");
   }, [bank]);
@@ -191,6 +206,7 @@ export default function QuizApp({ bank }: { bank: Question[] }) {
             correct={session.correct}
             onSubmit={handleSubmit}
             pending={grading}
+            error={gradeError}
           />
         )}
 

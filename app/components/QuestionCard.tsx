@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { AnsweredQuestion, Question } from "@/lib/quiz/types";
+import type { AnsweredQuestion, PublicQuestion } from "@/lib/quiz/types";
 import AutoTextarea from "./AutoTextarea";
 import ProgressBar from "./ProgressBar";
 
 interface QuestionCardProps {
-  question: Question;
+  question: PublicQuestion;
   index: number;
   results: AnsweredQuestion[];
   correct: number;
   onSubmit: (answer: string) => void;
   /** True while the answer is being graded by the server. */
   pending?: boolean;
+  /** True when the last grade attempt failed and the user should retry. */
+  error?: boolean;
 }
 
 export default function QuestionCard({
@@ -22,6 +24,7 @@ export default function QuestionCard({
   correct,
   onSubmit,
   pending = false,
+  error = false,
 }: QuestionCardProps) {
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -107,6 +110,15 @@ export default function QuestionCard({
             {pending ? "Grading…" : "Submit answer"}
           </button>
         </div>
+
+        {error && (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-wrong-soft px-4 py-3 font-sans text-sm text-wrong"
+          >
+            We couldn't grade that just now. Check your connection and try again.
+          </p>
+        )}
       </div>
     </div>
   );
