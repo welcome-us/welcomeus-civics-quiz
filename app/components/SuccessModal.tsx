@@ -148,7 +148,7 @@ export default function SuccessModal({
           </p>
           <h2
             id="success-title"
-            className="mt-2 font-display text-3xl font-semibold leading-tight"
+            className="mt-2 font-display text-3xl font-normal leading-tight"
           >
             {variant === "pass"
               ? "Congrats, you passed!"

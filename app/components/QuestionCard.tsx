@@ -60,7 +60,7 @@ export default function QuestionCard({
           {question.category}
         </span>
 
-        <h1 className="mt-4 text-balance font-display text-[1.7rem] font-semibold leading-snug text-ink sm:text-[2.05rem]">
+        <h1 className="mt-4 text-balance font-display text-[1.7rem] font-normal leading-snug text-ink sm:text-[2.05rem]">
           {question.question}
         </h1>
 

@@ -202,7 +202,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
               <button
                 type="button"
                 onClick={giveUp}
-                className="font-ui text-sm font-medium text-ink-faint transition-colors hover:text-ink"
+                className="font-ui text-sm font-medium text-ink-soft transition-colors hover:text-ink"
               >
                 I give up
               </button>
@@ -210,7 +210,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
             <button
               type="button"
               onClick={backToStart}
-              className="font-ui text-sm font-medium text-ink-faint transition-colors hover:text-ink"
+              className="font-ui text-sm font-medium text-ink-soft transition-colors hover:text-ink"
             >
               Restart
             </button>
@@ -256,7 +256,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
       </main>
 
       <footer className="mx-auto w-full max-w-2xl px-5 pb-6 text-center sm:px-6">
-        <p className="font-muted text-xs text-ink-faint">
+        <p className="font-muted text-xs text-ink-soft">
           Practice tool · Questions from the official USCIS civics bank (public
           domain). Not affiliated with USCIS.
         </p>
@@ -281,7 +281,7 @@ function IntroHero({ onStart }: { onStart: () => void }) {
         U.S. Naturalization · Civics
       </span>
 
-      <h1 className="mt-6 text-balance font-display text-5xl font-semibold leading-[1.05] text-ink sm:text-6xl">
+      <h1 className="mt-6 text-balance font-display text-5xl font-normal leading-[1.05] text-ink sm:text-6xl">
         Practice the civics test,
         <br />
         <span className="text-brand">welcome home.</span>

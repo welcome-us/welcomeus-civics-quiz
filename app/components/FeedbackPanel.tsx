@@ -71,7 +71,7 @@ export default function FeedbackPanel({
           </span>
           <div aria-live="polite">
             <p
-              className="font-display text-xl font-semibold leading-none"
+              className="font-display text-xl font-normal leading-none"
               style={{ color: accent }}
             >
               {correct ? "Correct" : "Not quite"}
@@ -87,7 +87,7 @@ export default function FeedbackPanel({
         </div>
 
         <div className="px-6 py-6 sm:px-8">
-          <p className="font-display text-lg font-medium leading-snug text-ink">
+          <p className="font-display text-lg font-normal leading-snug text-ink">
             {question.question}
           </p>
 
