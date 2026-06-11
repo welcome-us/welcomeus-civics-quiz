@@ -21,6 +21,7 @@ import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
 import StartModal from "./StartModal";
 import SuccessModal, {
+  type CaptureVariant,
   type SuccessFormData,
   type SuccessSubmitResult,
 } from "./SuccessModal";
@@ -59,6 +60,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
   const [grading, setGrading] = useState(false);
   const [gradeError, setGradeError] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
+  const [captureVariant, setCaptureVariant] = useState<CaptureVariant>("pass");
 
   const start = useCallback(() => {
     setSession(newSession(bank));
@@ -119,7 +121,10 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
     if (!session) return;
     if (session.status !== "IN_PROGRESS") {
       setPhase("result");
-      if (session.status === "PASSED") setSuccessOpen(true);
+      if (session.status === "PASSED") {
+        setCaptureVariant("pass");
+        setSuccessOpen(true);
+      }
       return;
     }
     setSession({ ...session, index: session.index + 1 });
@@ -135,6 +140,13 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
     setSuccessOpen(false);
     setPhase("question");
   }, [bank]);
+
+  // Bail out mid-quiz: surface the same lead-capture form with the give-up
+  // message instead of a passing score.
+  const giveUp = useCallback(() => {
+    setCaptureVariant("giveup");
+    setSuccessOpen(true);
+  }, []);
 
   const backToStart = useCallback(() => {
     setPhase("intro");
@@ -185,13 +197,24 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
           <Image src={WusLogo} alt="Welcome.US" className="h-8 w-auto" />
         </button>
         {phase !== "intro" && (
-          <button
-            type="button"
-            onClick={backToStart}
-            className="font-sans text-sm font-medium text-ink-faint transition-colors hover:text-ink"
-          >
-            Restart
-          </button>
+          <div className="flex items-center gap-4">
+            {(phase === "question" || phase === "feedback") && (
+              <button
+                type="button"
+                onClick={giveUp}
+                className="font-ui text-sm font-medium text-ink-faint transition-colors hover:text-ink"
+              >
+                I give up
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={backToStart}
+              className="font-ui text-sm font-medium text-ink-faint transition-colors hover:text-ink"
+            >
+              Restart
+            </button>
+          </div>
         )}
       </header>
 
@@ -233,7 +256,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
       </main>
 
       <footer className="mx-auto w-full max-w-2xl px-5 pb-6 text-center sm:px-6">
-        <p className="font-sans text-xs text-ink-faint">
+        <p className="font-muted text-xs text-ink-faint">
           Practice tool · Questions from the official USCIS civics bank (public
           domain). Not affiliated with USCIS.
         </p>
@@ -242,6 +265,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
       <StartModal open={modalOpen} onConfirm={start} onCancel={() => setModalOpen(false)} />
       <SuccessModal
         open={successOpen}
+        variant={captureVariant}
         onSubmit={handleSuccessSubmit}
         onClose={() => setSuccessOpen(false)}
       />
@@ -252,7 +276,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
 function IntroHero({ onStart }: { onStart: () => void }) {
   return (
     <div className="animate-float-up text-center">
-      <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 font-sans text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft shadow-sm">
+      <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 font-ui text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft shadow-sm">
         <StarMark className="h-3.5 w-3.5 text-accent" />
         U.S. Naturalization · Civics
       </span>
@@ -263,7 +287,7 @@ function IntroHero({ onStart }: { onStart: () => void }) {
         <span className="text-brand">welcome home.</span>
       </h1>
 
-      <p className="mx-auto mt-5 max-w-md text-pretty font-sans text-lg leading-relaxed text-ink-soft">
+      <p className="mx-auto mt-5 max-w-md text-pretty font-body text-lg leading-relaxed text-ink-soft">
         {TOTAL_QUESTIONS} questions, {PASS_THRESHOLD} to pass. Type your answers
         in your own words — we grade them the way a fair officer would.
       </p>
@@ -271,7 +295,7 @@ function IntroHero({ onStart }: { onStart: () => void }) {
       <button
         type="button"
         onClick={onStart}
-        className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-brand px-8 py-4 font-sans text-base font-semibold text-paper shadow-lg transition-all hover:bg-brand-deep hover:shadow-xl active:scale-[0.98]"
+        className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-brand px-8 py-4 font-ui text-base font-semibold text-paper shadow-lg transition-all hover:bg-brand-deep hover:shadow-xl active:scale-[0.98]"
       >
         <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
         Start practicing

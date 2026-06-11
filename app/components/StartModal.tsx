@@ -79,29 +79,30 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
 
       <div
         ref={dialogRef}
-        className="animate-scale-in relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(22,36,63,0.45)]"
+        className="animate-scale-in relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(2,0,73,0.45)]"
       >
         {/* Banner */}
         <div className="relative overflow-hidden bg-brand px-7 pt-7 pb-6 text-paper">
           <div className="absolute -right-6 -top-8 opacity-[0.14]">
             <StarMark className="h-36 w-36" />
           </div>
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
+          <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
             Naturalization Practice
           </p>
           <h2
             id="start-title"
             className="mt-2 font-display text-3xl font-semibold leading-tight"
           >
-            Ready to begin your civics test?
+            Could you pass a U.S. citizenship quiz?
           </h2>
         </div>
 
         <div className="px-7 py-6">
-          <p id="start-desc" className="font-sans text-[0.975rem] leading-relaxed text-ink-soft">
-            This is a relaxed practice run of the U.S. citizenship civics test.
-            Take your time — there's no clock, and you can retake it as often as
-            you like.
+          <p id="start-desc" className="font-body text-[0.975rem] leading-relaxed text-ink-soft">
+            As the United States marks its 250th birthday, put your civics
+            knowledge to the test. You'll answer 20 open-ended questions – the
+            same format used in the real citizenship exam. Think you have what
+            it takes to earn American citizenship? Let's find out!
           </p>
 
           <ul className="mt-5 space-y-3">
@@ -110,7 +111,7 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                   <StarMark className="h-3 w-3" />
                 </span>
-                <span className="font-sans text-sm leading-relaxed text-ink">
+                <span className="font-body text-sm leading-relaxed text-ink">
                   <span className="font-semibold">{rule.label}.</span>{" "}
                   <span className="text-ink-soft">{rule.detail}</span>
                 </span>
@@ -122,7 +123,7 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-full px-5 py-3 font-sans text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
+              className="rounded-full px-5 py-3 font-ui text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
             >
               Not yet
             </button>
@@ -130,11 +131,11 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
               ref={confirmRef}
               type="button"
               onClick={onConfirm}
-              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-sans text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
             >
               {/* Sheen sweep on hover */}
               <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
-              Begin the test →
+              Take the quiz →
             </button>
           </div>
         </div>

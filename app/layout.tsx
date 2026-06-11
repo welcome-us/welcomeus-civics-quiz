@@ -1,19 +1,6 @@
 import type { Metadata } from "next";
-import { Fraunces, Hanken_Grotesk } from "next/font/google";
+import { bookman, tiempos, neueHaas, manrope } from "./fonts";
 import "./globals.css";
-
-// Editorial display serif — warmth + civic gravitas for headings & questions.
-const fraunces = Fraunces({
-  variable: "--font-display",
-  subsets: ["latin"],
-  axes: ["opsz", "SOFT"],
-});
-
-// Humanist sans — highly legible body & UI type for a broad-proficiency audience.
-const hanken = Hanken_Grotesk({
-  variable: "--font-sans",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "Civics Practice — Welcome.US",
@@ -29,7 +16,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${hanken.variable} h-full antialiased`}
+      className={`${bookman.variable} ${tiempos.variable} ${neueHaas.variable} ${manrope.variable} h-full antialiased`}
     >
       <body className="min-h-full">{children}</body>
     </html>
