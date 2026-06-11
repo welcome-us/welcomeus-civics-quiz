@@ -91,7 +91,7 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
           </p>
           <h2
             id="start-title"
-            className="mt-2 font-display text-3xl font-semibold leading-tight"
+            className="mt-2 font-display text-3xl font-normal leading-tight"
           >
             Could you pass a U.S. citizenship quiz?
           </h2>

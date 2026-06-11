@@ -35,7 +35,7 @@ export default function ResultScreen({
           <p className="font-ui text-xs font-semibold uppercase tracking-[0.24em] text-paper/85">
             {passed ? "Congratulations" : "Keep practicing"}
           </p>
-          <h2 className="mt-3 font-display text-4xl font-semibold sm:text-5xl">
+          <h2 className="mt-3 font-display text-4xl font-normal sm:text-5xl">
             {passed ? "You passed!" : "Sorry, you did not pass."}
           </h2>
           {passed && (
@@ -139,7 +139,7 @@ export default function ResultScreen({
 function Stat({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
     <div className="px-4 py-5 text-center">
-      <p className="font-display text-3xl font-semibold tabular-nums" style={{ color: tone }}>
+      <p className="font-display text-3xl font-normal tabular-nums" style={{ color: tone }}>
         {value}
       </p>
       <p className="mt-1 font-muted text-xs font-medium uppercase tracking-wider text-ink-faint">

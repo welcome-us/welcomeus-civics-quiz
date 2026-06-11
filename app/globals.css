@@ -10,7 +10,7 @@
   --ink: #020049;
   --ink-soft: #5a6178;
   --ink-faint: #8d93a6;
-  --brand: #2353e0;
+  --brand: #1a38ab;
   --brand-deep: #293870;
   --accent: #e2553a;
   --accent-soft: #f6d9cf;
@@ -52,6 +52,12 @@ html {
   color-scheme: light;
 }
 
+/* Bookman JF Pro ships only Regular + Italic — stop the browser from faking
+   heavier weights (no synthetic bold) if a bold class lands on a heading. */
+.font-display {
+  font-synthesis-weight: none;
+}
+
 body {
   background-color: var(--paper);
   color: var(--ink);
@@ -61,12 +67,12 @@ body {
   background-image:
     radial-gradient(
       62rem 42rem at 82% -8%,
-      rgba(35, 83, 224, 0.08),
+      rgba(253, 185, 19, 0.14),
       transparent 60%
     ),
     radial-gradient(
       54rem 40rem at -6% 108%,
-      rgba(226, 85, 58, 0.09),
+      rgba(226, 85, 58, 0.1),
       transparent 60%
     ),
     linear-gradient(var(--line) 1px, transparent 1px),
