@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PASS_THRESHOLD, TOTAL_QUESTIONS } from "@/lib/quiz/state";
 import { StarMark } from "./Wordmark";
 
 export interface SuccessFormData {
@@ -16,8 +17,12 @@ export interface SuccessSubmitResult {
   message?: string;
 }
 
+export type CaptureVariant = "pass" | "giveup";
+
 interface SuccessModalProps {
   open: boolean;
+  /** Which message to show above the (identical) lead-capture form. */
+  variant?: CaptureVariant;
   onSubmit: (data: SuccessFormData) => Promise<SuccessSubmitResult> | SuccessSubmitResult;
   onClose: () => void;
 }
@@ -30,10 +35,17 @@ const EMPTY: SuccessFormData = {
   marketingConsent: true, // opt-in by default
 };
 
-// Placeholder lead-capture form shown after a passing score. There's no
-// backend yet (plan.md TBD) — onSubmit hands the collected fields to the
-// parent, which is the single seam where a real submission can be wired in.
-export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalProps) {
+// Lead-capture form shown either after a passing score ("pass") or when the
+// user bails out early ("giveup"). The form itself is identical in both cases —
+// only the banner + intro copy above it changes. onSubmit hands the collected
+// fields to the parent, which is the single seam where a real submission can be
+// wired in.
+export default function SuccessModal({
+  open,
+  variant = "pass",
+  onSubmit,
+  onClose,
+}: SuccessModalProps) {
   const [data, setData] = useState<SuccessFormData>(EMPTY);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,29 +136,59 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
 
       <div
         ref={dialogRef}
-        className="animate-scale-in relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(22,36,63,0.45)]"
+        className="animate-scale-in relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(2,0,73,0.45)]"
       >
         {/* Banner */}
         <div className="relative overflow-hidden bg-brand px-7 pt-7 pb-6 text-paper">
           <div className="absolute -right-6 -top-8 opacity-[0.14]">
             <StarMark className="h-36 w-36" />
           </div>
-          <p className="font-sans text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
-            You passed
+          <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
+            {variant === "pass" ? "You passed" : "No worries"}
           </p>
           <h2
             id="success-title"
             className="mt-2 font-display text-3xl font-semibold leading-tight"
           >
-            Get your results &amp; what&apos;s next
+            {variant === "pass"
+              ? "Congrats, you passed!"
+              : "The citizenship test is tough."}
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="px-7 py-6">
-          <p id="success-desc" className="font-sans text-[0.975rem] leading-relaxed text-ink-soft">
-            Tell us where to send your results and the next steps on your path to
-            citizenship.
-          </p>
+          <div id="success-desc" className="space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
+            {variant === "pass" ? (
+              <p>
+                You&apos;re as American as fireworks on the Fourth of July! You
+                answered at least {PASS_THRESHOLD} out of {TOTAL_QUESTIONS}{" "}
+                questions correctly—the score needed to pass the U.S. citizenship
+                exam. Now share this quiz with family and friends to see if they
+                have what it takes to pass the citizenship test—and take the
+                opportunity to brag about your civics knowledge!
+              </p>
+            ) : (
+              <p>
+                {/* TODO: replace with final give-up copy */}
+                No shame in stepping away—most people need a few rounds of
+                practice before they&apos;re ready. Leave your details and
+                we&apos;ll send you study tips and resources so you can pick up
+                where you left off and pass it next time.
+              </p>
+            )}
+            <p>
+              Find out more about what it takes to earn American citizenship at{" "}
+              <a
+                href="https://welcome.us"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-brand underline underline-offset-2 hover:text-brand-deep"
+              >
+                Welcome.US
+              </a>
+              .
+            </p>
+          </div>
 
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field
@@ -197,7 +239,7 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
               onChange={(e) => set("marketingConsent", e.target.checked)}
               className="mt-0.5 h-4 w-4 shrink-0 rounded border-line text-brand accent-brand"
             />
-            <span className="font-sans text-sm leading-relaxed text-ink-soft">
+            <span className="font-body text-sm leading-relaxed text-ink-soft">
               Yes, send me citizenship tips, resources, and occasional updates. You
               can unsubscribe at any time.
             </span>
@@ -206,7 +248,7 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
           {submitError && (
             <p
               aria-live="polite"
-              className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-sans text-sm text-red-700"
+              className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 font-ui text-sm text-red-700"
             >
               {submitError}
             </p>
@@ -217,17 +259,21 @@ export default function SuccessModal({ open, onSubmit, onClose }: SuccessModalPr
               type="button"
               onClick={close}
               disabled={isSubmitting}
-              className="rounded-full px-5 py-3 font-sans text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
+              className="rounded-full px-5 py-3 font-ui text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
             >
               Maybe later
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-sans text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
             >
               <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
-              {isSubmitting ? "Sending..." : "Send my results →"}
+              {isSubmitting
+                ? "Sending..."
+                : variant === "pass"
+                  ? "Send my results →"
+                  : "Send me study tips →"}
             </button>
           </div>
         </form>
@@ -263,7 +309,7 @@ const Field = ({
   <div>
     <label
       htmlFor={id}
-      className="font-sans text-xs font-semibold uppercase tracking-wider text-ink-faint"
+      className="font-ui text-xs font-semibold uppercase tracking-wider text-ink-faint"
     >
       {label}
     </label>
@@ -278,7 +324,7 @@ const Field = ({
       autoComplete={autoComplete}
       inputMode={inputMode}
       pattern={pattern}
-      className="mt-1.5 w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 font-sans text-sm text-ink outline-none ring-brand/30 transition-shadow placeholder:text-ink-faint focus:border-brand focus:ring-2"
+      className="mt-1.5 w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 font-body text-sm text-ink outline-none ring-brand/30 transition-shadow placeholder:text-ink-faint focus:border-brand focus:ring-2"
     />
   </div>
 );

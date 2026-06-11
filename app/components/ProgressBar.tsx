@@ -22,14 +22,14 @@ export default function ProgressBar({ current, results, correct }: ProgressBarPr
   return (
     <div className="w-full">
       <div className="mb-3 flex items-baseline justify-between gap-3">
-        <p className="font-sans text-sm font-semibold tracking-wide text-ink">
+        <p className="font-ui text-sm font-semibold tracking-wide text-ink">
           Question{" "}
           <span className="tabular-nums">
             {Math.min(current + 1, TOTAL_QUESTIONS)}
           </span>{" "}
           <span className="text-ink-faint">of {TOTAL_QUESTIONS}</span>
         </p>
-        <p className="font-sans text-sm text-ink-soft">
+        <p className="font-ui text-sm text-ink-soft">
           <span className="font-semibold tabular-nums text-correct">{correct}</span>{" "}
           correct
           <span className="text-ink-faint"> · need {PASS_THRESHOLD}</span>

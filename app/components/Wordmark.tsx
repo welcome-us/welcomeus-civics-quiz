@@ -16,7 +16,7 @@ export default function Wordmark() {
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-paper shadow-sm">
         <StarMark className="h-4 w-4" />
       </span>
-      <span className="font-sans text-[1.05rem] font-extrabold tracking-tight text-ink">
+      <span className="font-ui text-[1.05rem] font-extrabold tracking-tight text-ink">
         Welcome<span className="text-accent">.US</span>
         <span className="ml-1.5 font-medium text-ink-faint">Civics</span>
       </span>

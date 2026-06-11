@@ -4,14 +4,14 @@
    Warm cream paper, deep navy ink, a welcoming blue, and a warm coral
    accent. Dignified but human — inspired by welcome.us's inclusive tone. */
 :root {
-  --paper: #fbf6ec;
+  --paper: #faf5f2;
   --paper-deep: #f3e9d8;
   --surface: #fffdf8;
-  --ink: #16243f;
+  --ink: #020049;
   --ink-soft: #5a6178;
   --ink-faint: #8d93a6;
   --brand: #2353e0;
-  --brand-deep: #163a9e;
+  --brand-deep: #293870;
   --accent: #e2553a;
   --accent-soft: #f6d9cf;
   --gold: #e1a128;
@@ -19,8 +19,8 @@
   --correct-soft: #d8eede;
   --wrong: #c23a22;
   --wrong-soft: #f6dad2;
-  --line: rgba(22, 36, 63, 0.12);
-  --line-strong: rgba(22, 36, 63, 0.22);
+  --line: rgba(2, 0, 73, 0.12);
+  --line-strong: rgba(2, 0, 73, 0.22);
 }
 
 @theme inline {
@@ -41,8 +41,11 @@
   --color-wrong-soft: var(--wrong-soft);
   --color-line: var(--line);
 
-  --font-display: var(--font-display);
-  --font-sans: var(--font-sans);
+  /* Brand typography roles */
+  --font-display: var(--font-display); /* Bookman JF Pro — headlines & questions */
+  --font-body: var(--font-body); /* Tiempos Text — body copy */
+  --font-ui: var(--font-ui); /* Neue Haas Grotesk — buttons & bold UI */
+  --font-muted: var(--font-muted); /* Manrope — muted / secondary UI */
 }
 
 html {
@@ -52,7 +55,7 @@ html {
 body {
   background-color: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body), Georgia, serif;
   /* Atmosphere: two faint warm glows + a hair-fine grid, so the cream never
      reads as a flat fill. */
   background-image:
@@ -89,7 +92,7 @@ body::before {
   background: radial-gradient(
     120% 90% at 50% 0%,
     transparent 55%,
-    rgba(22, 36, 63, 0.05) 100%
+    rgba(2, 0, 73, 0.05) 100%
   );
   pointer-events: none;
   z-index: 0;

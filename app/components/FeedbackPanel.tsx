@@ -38,7 +38,7 @@ export default function FeedbackPanel({
       <ProgressBar current={index} results={results} correct={feedback.progress.correct} />
 
       <div
-        className="mt-7 overflow-hidden rounded-3xl border bg-surface shadow-[0_18px_50px_-28px_rgba(22,36,63,0.4)]"
+        className="mt-7 overflow-hidden rounded-3xl border bg-surface shadow-[0_18px_50px_-28px_rgba(2,0,73,0.4)]"
         style={{ borderColor: accent }}
       >
         {/* Verdict header */}
@@ -76,7 +76,7 @@ export default function FeedbackPanel({
             >
               {correct ? "Correct" : "Not quite"}
             </p>
-            <p className="mt-1 font-sans text-sm text-ink-soft">
+            <p className="mt-1 font-body text-sm text-ink-soft">
               {feedback.reason
                 ? feedback.reason
                 : correct
@@ -92,14 +92,14 @@ export default function FeedbackPanel({
           </p>
 
           <div className="mt-4 rounded-xl bg-paper px-4 py-3 ring-1 ring-line">
-            <p className="font-sans text-xs font-semibold uppercase tracking-wider text-ink-faint">
+            <p className="font-ui text-xs font-semibold uppercase tracking-wider text-ink-faint">
               You wrote
             </p>
-            <p className="mt-1 font-sans text-[0.95rem] text-ink">“{userAnswer}”</p>
+            <p className="mt-1 font-body text-[0.95rem] text-ink">“{userAnswer}”</p>
           </div>
 
           <div className="mt-4">
-            <p className="font-sans text-xs font-semibold uppercase tracking-wider text-ink-faint">
+            <p className="font-ui text-xs font-semibold uppercase tracking-wider text-ink-faint">
               {feedback.acceptableAnswers.length > 1
                 ? "Acceptable answers include"
                 : "Acceptable answer"}
@@ -108,7 +108,7 @@ export default function FeedbackPanel({
               {feedback.acceptableAnswers.map((ans) => (
                 <li
                   key={ans}
-                  className="rounded-lg bg-correct-soft px-3 py-1.5 font-sans text-sm font-medium text-correct"
+                  className="rounded-lg bg-correct-soft px-3 py-1.5 font-body text-sm font-medium text-correct"
                 >
                   {ans}
                 </li>
@@ -116,7 +116,7 @@ export default function FeedbackPanel({
             </ul>
           </div>
 
-          <p className="mt-4 border-l-2 border-gold/50 pl-3 font-sans text-sm leading-relaxed text-ink-soft">
+          <p className="mt-4 border-l-2 border-gold/50 pl-3 font-body text-sm leading-relaxed text-ink-soft">
             {feedback.explanation}
           </p>
 
@@ -125,7 +125,7 @@ export default function FeedbackPanel({
               ref={nextRef}
               type="button"
               onClick={onNext}
-              className="rounded-full bg-ink px-7 py-3.5 font-sans text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand hover:shadow-lg active:scale-[0.98]"
+              className="rounded-full bg-ink px-7 py-3.5 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand hover:shadow-lg active:scale-[0.98]"
             >
               {isTerminal ? "See your result →" : "Next question →"}
             </button>
