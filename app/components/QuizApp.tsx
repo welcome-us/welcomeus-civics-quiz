@@ -194,22 +194,24 @@ export default function QuizApp({
 
   return (
     <div className="relative z-10 flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-2xl items-center justify-between px-5 pt-6 sm:px-6">
-        <button
-          type="button"
-          onClick={backToStart}
-          className="rounded-lg transition-opacity hover:opacity-80"
-          aria-label="Back to start"
+      <header className="mx-auto grid w-full max-w-2xl grid-cols-3 items-center px-5 pt-6 sm:px-6">
+        <span aria-hidden="true" />
+        <a
+          href="https://welcome.us"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="justify-self-center rounded-lg transition-opacity hover:opacity-80"
+          aria-label="Welcome.US (opens in a new tab)"
         >
           <Image src={WusLogo} alt="Welcome.US" className="h-8 w-auto" />
-        </button>
-        {phase !== "intro" && (
-          <div className="flex items-center gap-4">
+        </a>
+        {phase !== "intro" ? (
+          <div className="flex items-center justify-end gap-4">
             {(phase === "question" || phase === "feedback") && (
               <button
                 type="button"
                 onClick={giveUp}
-                className="font-ui text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+                className="font-ui text-sm font-medium text-ink-soft underline underline-offset-4 transition-colors hover:text-ink"
               >
                 I give up
               </button>
@@ -217,11 +219,13 @@ export default function QuizApp({
             <button
               type="button"
               onClick={backToStart}
-              className="font-ui text-sm font-medium text-ink-soft transition-colors hover:text-ink"
+              className="font-ui text-sm font-medium text-ink-soft underline underline-offset-4 transition-colors hover:text-ink"
             >
               Restart
             </button>
           </div>
+        ) : (
+          <span aria-hidden="true" />
         )}
       </header>
 
