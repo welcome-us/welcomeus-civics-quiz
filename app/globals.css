@@ -11,7 +11,9 @@
   --ink-soft: #5a6178;
   --ink-faint: #8d93a6;
   --brand: #1a38ab;
-  --brand-deep: #293870;
+  /* Hover shade for brand controls: a true darker blue (same hue/saturation),
+     so hovering deepens the button instead of desaturating it. */
+  --brand-deep: #142c85;
   --accent: #e2553a;
   --accent-soft: #f6d9cf;
   --gold: #e1a128;
@@ -50,6 +52,14 @@
 
 html {
   color-scheme: light;
+}
+
+/* Tailwind v4's Preflight no longer sets `cursor: pointer` on buttons, so
+   restore the expected hand cursor on interactive controls. */
+button:not(:disabled),
+[role="button"]:not(:disabled),
+a {
+  cursor: pointer;
 }
 
 /* Bookman JF Pro ships only Regular + Italic — stop the browser from faking
