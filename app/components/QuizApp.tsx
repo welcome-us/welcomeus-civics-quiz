@@ -307,9 +307,8 @@ function IntroHero({ onStart }: { onStart: () => void }) {
       <button
         type="button"
         onClick={onStart}
-        className="group relative mt-8 inline-flex items-center gap-2 overflow-hidden rounded-full bg-brand px-8 py-4 font-ui text-base font-semibold text-paper shadow-lg transition-all hover:bg-brand-deep hover:shadow-xl active:scale-[0.98]"
+        className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 font-ui text-base font-semibold text-paper shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-6px_rgba(26,56,171,0.55),0_0_44px_-4px_rgba(26,56,171,0.45)] active:translate-y-0 active:scale-[0.98]"
       >
-        <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
         Start practicing
         <span aria-hidden="true">→</span>
       </button>
