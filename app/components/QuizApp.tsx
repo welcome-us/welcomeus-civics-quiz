@@ -51,7 +51,14 @@ function newSession(bank: PublicQuestion[]): Session {
   };
 }
 
-export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
+export default function QuizApp({
+  bank,
+  leadCapture = true,
+}: {
+  bank: PublicQuestion[];
+  /** Route-selected: true renders the lead-capture form on the success modal. */
+  leadCapture?: boolean;
+}) {
   const [phase, setPhase] = useState<Phase>("intro");
   const [modalOpen, setModalOpen] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
@@ -266,6 +273,7 @@ export default function QuizApp({ bank }: { bank: PublicQuestion[] }) {
       <SuccessModal
         open={successOpen}
         variant={captureVariant}
+        leadCapture={leadCapture}
         onSubmit={handleSuccessSubmit}
         onClose={() => setSuccessOpen(false)}
       />
