@@ -23,6 +23,12 @@ interface SuccessModalProps {
   open: boolean;
   /** Which message to show above the (identical) lead-capture form. */
   variant?: CaptureVariant;
+  /**
+   * Route-selected: when true (the /exam variant) the modal renders the
+   * lead-capture form; when false (the /civics variant) it shows the congrats
+   * banner and copy only, with a single dismiss button and no submission.
+   */
+  leadCapture?: boolean;
   onSubmit: (data: SuccessFormData) => Promise<SuccessSubmitResult> | SuccessSubmitResult;
   onClose: () => void;
 }
@@ -43,6 +49,7 @@ const EMPTY: SuccessFormData = {
 export default function SuccessModal({
   open,
   variant = "pass",
+  leadCapture = true,
   onSubmit,
   onClose,
 }: SuccessModalProps) {
@@ -95,6 +102,10 @@ export default function SuccessModal({
 
   const set = <K extends keyof SuccessFormData>(key: K, value: SuccessFormData[K]) =>
     setData((d) => ({ ...d, [key]: value }));
+
+  // The no-form give-up case (/civics) points users to the Citizen Guide
+  // program instead of capturing a lead — its own copy and CTA, no submission.
+  const citizenGuide = !leadCapture && variant === "giveup";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,6 +178,15 @@ export default function SuccessModal({
                 have what it takes to pass the citizenship test—and take the
                 opportunity to brag about your civics knowledge!
               </p>
+            ) : citizenGuide ? (
+              <p>
+                You&apos;re not alone in feeling stumped. Most Americans born here
+                could not pass this exam. Now imagine the pressure of testing with
+                your future riding on the answers. Nobody should have to study
+                alone. The Citizen Guide program virtually pairs a green card
+                holder with a volunteer, and they study together, one question at
+                a time. You might be surprised what you take away from it.
+              </p>
             ) : (
               <p>
                 {/* TODO: replace with final give-up copy */}
@@ -176,20 +196,24 @@ export default function SuccessModal({
                 where you left off and pass it next time.
               </p>
             )}
-            <p>
-              Find out more about what it takes to earn American citizenship at{" "}
-              <a
-                href="https://welcome.us"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-brand underline underline-offset-2 hover:text-brand-deep"
-              >
-                Welcome.US
-              </a>
-              .
-            </p>
+            {!citizenGuide && (
+              <p>
+                Find out more about what it takes to earn American citizenship at{" "}
+                <a
+                  href="https://welcome.us"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-brand underline underline-offset-2 hover:text-brand-deep"
+                >
+                  Welcome.US
+                </a>
+                .
+              </p>
+            )}
           </div>
 
+          {leadCapture && (
+          <>
           <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field
               ref={firstFieldRef}
@@ -253,28 +277,54 @@ export default function SuccessModal({
               {submitError}
             </p>
           )}
+          </>
+          )}
 
           <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={close}
-              disabled={isSubmitting}
-              className="rounded-full px-5 py-3 font-ui text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
-            >
-              Maybe later
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
-            >
-              <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
-              {isSubmitting
-                ? "Sending..."
-                : variant === "pass"
-                  ? "Send my results →"
-                  : "Send me study tips →"}
-            </button>
+            {leadCapture ? (
+              <>
+                <button
+                  type="button"
+                  onClick={close}
+                  disabled={isSubmitting}
+                  className="rounded-full px-5 py-3 font-ui text-sm font-semibold text-ink-soft transition-colors hover:bg-paper-deep"
+                >
+                  Maybe later
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+                >
+                  <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
+                  {isSubmitting
+                    ? "Sending..."
+                    : variant === "pass"
+                      ? "Send my results →"
+                      : "Send me study tips →"}
+                </button>
+              </>
+            ) : citizenGuide ? (
+              <a
+                href="https://welcome.us/citizenship"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={close}
+                className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+              >
+                <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
+                Take the first step →
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={close}
+                className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+              >
+                <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
+                Done
+              </button>
+            )}
           </div>
         </form>
       </div>
