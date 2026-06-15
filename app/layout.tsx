@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { bookman, tiempos, neueHaas, manrope } from "./fonts";
+import BackgroundGlow from "./components/BackgroundGlow";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({
       lang="en"
       className={`${bookman.variable} ${tiempos.variable} ${neueHaas.variable} ${manrope.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        <BackgroundGlow />
+        {children}
+      </body>
     </html>
   );
 }

@@ -23,6 +23,11 @@
   --wrong-soft: #f6dad2;
   --line: rgba(2, 0, 73, 0.12);
   --line-strong: rgba(2, 0, 73, 0.22);
+
+  /* Resting position of the warm gold glow. BackgroundGlow eases these toward
+     the cursor so the glow trails the pointer. */
+  --glow-x: 82%;
+  --glow-y: -8%;
 }
 
 @theme inline {
@@ -76,7 +81,7 @@ body {
      reads as a flat fill. */
   background-image:
     radial-gradient(
-      62rem 42rem at 82% -8%,
+      62rem 42rem at var(--glow-x) var(--glow-y),
       rgba(253, 185, 19, 0.14),
       transparent 60%
     ),
