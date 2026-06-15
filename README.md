@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Welcome.US Civics Quiz
 
-## Getting Started
+A practice tool for the U.S. naturalization civics test. Users answer questions
+in their own words; answers are graded server-side, and a passing (or give-up)
+result surfaces a Welcome.US call to action.
 
-First, run the development server:
+Built with Next.js 16 (App Router) and React 19. See [AGENTS.md](AGENTS.md) — this
+Next.js version has breaking changes from older releases; read the bundled guides
+in `node_modules/next/dist/docs/` before relying on framework APIs.
+
+## Getting started
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # fill in the keys below
+npm run dev                  # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`npm run build` for a production build, `npm run lint` to lint.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Variants
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The quiz ships as two route-selected variants off a **single engine** — there is
+no duplicated quiz logic. The only thing that differs is one config table.
 
-## Learn More
+- **`/exam`** — lead-gen: a passing score opens the lead-capture form (posts to Salesforce).
+- **`/civics`** — no form: a passing score opens a congrats-only modal; give-up shows the Citizen Guide CTA.
+- **`/`** — 307 redirect to `/exam` (incoming query/UTMs preserved).
 
-To learn more about Next.js, take a look at the following resources:
+Variant behavior lives in [lib/quiz/variants.ts](lib/quiz/variants.ts) — a
+`leadCapture` flag per variant. Each route page ([app/exam/page.tsx](app/exam/page.tsx),
+[app/civics/page.tsx](app/civics/page.tsx)) is a thin wrapper that renders the
+shared `QuizApp` with its variant config. Adding a third flavor means editing the
+config table, not forking components.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Routing is path-based within one deployment.** The `app/` folder structure
+  defines the routes; the `/` → `/exam` redirect is configured in
+  [next.config.ts](next.config.ts) and honored natively by Vercel (no `vercel.json`).
+- **The answer key never reaches the browser.** [app/page-level loaders](lib/quiz/bank.ts)
+  strip `acceptableAnswers` / `explanation` from each question; the client only
+  ever sees `PublicQuestion` fields. Grading happens behind `/api/grade` by
+  question id, and the correct answer is returned only *after* a guess is scored.
+- **Grading degrades gracefully.** [app/api/grade/route.ts](app/api/grade/route.ts)
+  uses the Anthropic (Haiku) grader when `ANTHROPIC_API_KEY` is set, and falls
+  back to a deterministic string matcher when it is not — grading never errors
+  out and never silently flips a verdict.
+- **Lead capture** is a single server action,
+  [app/_actions/submit-success-modal.ts](app/_actions/submit-success-modal.ts),
+  which validates the payload and POSTs to the configured Salesforce endpoint.
 
-## Deploy on Vercel
+## Environment variables
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Copy [.env.example](.env.example) to `.env.local`. Both are read at **runtime**
+(server action / API route), so the build succeeds without them.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Variable            | Required          | Effect when missing                                  |
+| ------------------- | ----------------- | ---------------------------------------------------- |
+| `SF_ENDPOINT`       | yes (for `/exam`) | lead submissions fail; **no leads captured**         |
+| `ANTHROPIC_API_KEY` | recommended       | grading falls back to the deterministic matcher      |
+
+## Deployment
+
+Hosted on Vercel; `master` is the Production branch and serves the subdomain.
+Workflow: work on `develop`, open a PR into `master`, merge to deploy.
+
+- Set `SF_ENDPOINT` and `ANTHROPIC_API_KEY` in the Vercel **Production**
+  environment. Preview deployments don't inherit Production-scoped vars, so the
+  form and the LLM grader degrade there unless the vars are added to Preview too
+  (use a sandbox Salesforce endpoint for Preview to avoid polluting the CRM).
+- After changing env vars, redeploy — Vercel does not apply them to existing builds.
+- Smoke test on the live subdomain: `/` 307s to `/exam`; pass `/exam` and submit
+  a test lead to confirm `SF_ENDPOINT` end-to-end; `/civics` shows no form;
+  append `?utm_source=test` and confirm the UTM carries through to the lead.
