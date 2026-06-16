@@ -125,7 +125,7 @@ export default function FeedbackPanel({
               ref={nextRef}
               type="button"
               onClick={onNext}
-              className="rounded-full bg-ink px-7 py-3.5 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand hover:shadow-lg active:scale-[0.98]"
+              className="rounded-full bg-[#FDB913] px-7 py-3.5 font-ui text-sm font-semibold text-[#020049] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e5a50f] hover:shadow-[0_10px_30px_-6px_rgba(253,185,19,0.275),0_0_44px_-4px_rgba(253,185,19,0.225)] active:translate-y-0 active:scale-[0.98]"
             >
               {isTerminal ? "See your result →" : "Next question →"}
             </button>

@@ -99,11 +99,11 @@ export default function QuestionCard({
             type="button"
             onClick={submit}
             disabled={!canSubmit}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-7 py-3.5 font-ui text-sm font-semibold text-paper shadow-md transition-all enabled:hover:bg-brand enabled:hover:shadow-lg enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[#FDB913] px-7 py-3.5 font-ui text-sm font-semibold text-[#020049] shadow-md transition-all duration-300 enabled:hover:-translate-y-0.5 enabled:hover:bg-[#e5a50f] enabled:hover:shadow-[0_10px_30px_-6px_rgba(253,185,19,0.275),0_0_44px_-4px_rgba(253,185,19,0.225)] enabled:active:translate-y-0 enabled:active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
           >
             {pending && (
               <span
-                className="h-4 w-4 animate-spin rounded-full border-2 border-paper/40 border-t-paper"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-[#020049]/30 border-t-[#020049]"
                 aria-hidden="true"
               />
             )}
