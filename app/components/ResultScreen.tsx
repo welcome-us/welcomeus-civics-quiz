@@ -57,7 +57,8 @@ export default function ResultScreen({
             <div className="mb-6 space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
               <p>
                 If this scenario was real, you&apos;d get one more shot to
-                answer {PASS_THRESHOLD} questions correctly at a second interview.
+                answer {PASS_THRESHOLD}{" "}
+                questions correctly at a second interview.
                 Don&apos;t feel bad—these questions are from the real U.S.
                 citizenship civics test, and two-thirds of Americans can&apos;t
                 pass it cold either. If you thought that was a challenge, share
