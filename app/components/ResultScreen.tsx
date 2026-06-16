@@ -23,9 +23,9 @@ export default function ResultScreen({
 
   return (
     <div className="animate-scale-in w-full">
-      <div className="overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_24px_70px_-28px_rgba(2,0,73,0.45)]">
+      <div className="rounded-3xl border border-line bg-surface shadow-[0_24px_70px_-28px_rgba(2,0,73,0.45)]">
         <div
-          className="relative overflow-hidden px-7 py-10 text-center text-paper sm:px-10"
+          className="relative overflow-hidden rounded-t-3xl px-7 py-10 text-center text-paper sm:px-10"
           style={{ backgroundColor: accent }}
         >
           <div className="pointer-events-none absolute inset-0 opacity-[0.12]">
@@ -56,7 +56,7 @@ export default function ResultScreen({
           {!passed && (
             <div className="mb-6 space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
               <p>
-                If this scenario was real, you&apos;d get one more shot to answer{" "}
+                If this scenario was real, you&apos;d get one more shot to answer {" "}
                 {PASS_THRESHOLD} questions correctly at a second interview.
                 Don&apos;t feel bad—these questions are from the real U.S.
                 citizenship civics test, and two-thirds of Americans can&apos;t
@@ -67,7 +67,7 @@ export default function ResultScreen({
               <p>
                 Find out more about what it takes to earn American citizenship at{" "}
                 <a
-                  href="https://welcome.us"
+                  href="https://welcome.us/citizenship"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-brand underline underline-offset-2 hover:text-brand-deep"
@@ -115,7 +115,7 @@ export default function ResultScreen({
             <button
               type="button"
               onClick={onRetry}
-              className="w-full rounded-full bg-brand px-8 py-3.5 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98] sm:w-auto"
+              className="w-full rounded-full bg-[#FDB913] px-8 py-3.5 font-ui text-sm font-semibold text-[#020049] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e5a50f] hover:shadow-[0_10px_30px_-6px_rgba(253,185,19,0.275),0_0_44px_-4px_rgba(253,185,19,0.225)] active:translate-y-0 active:scale-[0.98] sm:w-auto"
             >
               {passed ? "Try again with new questions" : "Try again"}
             </button>
