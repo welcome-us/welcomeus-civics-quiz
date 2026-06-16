@@ -73,18 +73,18 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
         type="button"
         aria-label="Close"
         onClick={onCancel}
-        className="absolute inset-0 cursor-default bg-ink/35 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 cursor-default backdrop-blur-sm animate-fade-in"
         tabIndex={-1}
       />
 
       <div
         ref={dialogRef}
-        className="animate-scale-in relative w-full max-w-lg overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(2,0,73,0.45)]"
+        className="animate-scale-in relative w-full max-w-lg rounded-3xl border border-line bg-surface shadow-[0_30px_80px_-20px_rgba(2,0,73,0.45)]"
       >
         {/* Banner */}
-        <div className="relative overflow-hidden bg-brand px-7 pt-7 pb-6 text-paper">
-          <div className="absolute -right-6 -top-8 opacity-[0.14]">
-            <StarMark className="h-36 w-36" />
+        <div className="relative overflow-hidden rounded-t-3xl bg-[#293870] px-7 pt-7 pb-6 text-paper">
+          <div className="absolute -right-6 -top-8 opacity-[0.28]">
+            <StarMark className="h-36 w-36 text-[#0D3FF7]" />
           </div>
           <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
             Naturalization Practice
@@ -131,10 +131,8 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
               ref={confirmRef}
               type="button"
               onClick={onConfirm}
-              className="group relative overflow-hidden rounded-full bg-brand px-7 py-3 font-ui text-sm font-semibold text-paper shadow-md transition-all hover:bg-brand-deep hover:shadow-lg active:scale-[0.98]"
+              className="rounded-full bg-[#FDB913] px-7 py-3 font-ui text-sm font-semibold text-[#020049] shadow-md transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e5a50f] hover:shadow-[0_10px_30px_-6px_rgba(253,185,19,0.275),0_0_44px_-4px_rgba(253,185,19,0.225)] active:translate-y-0 active:scale-[0.98]"
             >
-              {/* Sheen sweep on hover */}
-              <span className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 skew-x-[-20deg] bg-white/25 opacity-0 transition-opacity group-hover:animate-[sheen_0.9s_ease] group-hover:opacity-100" />
               Take the quiz →
             </button>
           </div>

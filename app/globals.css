@@ -19,10 +19,12 @@
   --gold: #e1a128;
   --correct: #1c7c4a;
   --correct-soft: #d8eede;
-  --wrong: #c23a22;
+  --wrong: #E30638;
   --wrong-soft: #f6dad2;
-  --line: rgba(2, 0, 73, 0.12);
-  --line-strong: rgba(2, 0, 73, 0.22);
+  /* Warm ruling lines: a dark amber-brown (deep variant of #FDB913) so the grid
+     tints the cream warm rather than cool. Same alphas as the old navy. */
+  --line: rgba(74, 52, 6, 0.12);
+  --line-strong: rgba(74, 52, 6, 0.22);
 
   /* Resting position of the warm gold glow. BackgroundGlow eases these toward
      the cursor so the glow trails the pointer. */
@@ -113,7 +115,7 @@ body::before {
   background: radial-gradient(
     120% 90% at 50% 0%,
     transparent 55%,
-    rgba(2, 0, 73, 0.05) 100%
+    rgba(74, 52, 6, 0.05) 100%
   );
   pointer-events: none;
   z-index: 0;
@@ -197,11 +199,13 @@ body::before {
   }
 }
 
-/* Larger, calmer focus ring for keyboard users (accessibility-first audience). */
+/* Larger, calmer focus ring for keyboard users (accessibility-first audience).
+   No border-radius here: the browser already draws the outline following each
+   element's own radius, and overriding it morphs pill buttons (e.g. the
+   auto-focused "Take the quiz") via their transition-all. */
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
-  border-radius: 6px;
 }
 
 ::selection {

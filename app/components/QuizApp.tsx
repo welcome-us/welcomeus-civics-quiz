@@ -213,7 +213,7 @@ export default function QuizApp({
                 onClick={giveUp}
                 className="font-ui text-sm font-medium text-ink-soft underline underline-offset-4 transition-colors hover:text-ink"
               >
-                I give up
+                Give Up
               </button>
             )}
             <button
@@ -307,7 +307,7 @@ function IntroHero({ onStart }: { onStart: () => void }) {
       <button
         type="button"
         onClick={onStart}
-        className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-8 py-4 font-ui text-base font-semibold text-paper shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-6px_rgba(26,56,171,0.55),0_0_44px_-4px_rgba(26,56,171,0.45)] active:translate-y-0 active:scale-[0.98]"
+        className="mt-8 inline-flex items-center gap-2 rounded-full bg-[#FDB913] px-8 py-4 font-ui text-base font-semibold text-[#020049] shadow-lg transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#e5a50f] hover:shadow-[0_10px_30px_-6px_rgba(253,185,19,0.275),0_0_44px_-4px_rgba(253,185,19,0.225)] active:translate-y-0 active:scale-[0.98]"
       >
         Start practicing
         <span aria-hidden="true">→</span>
