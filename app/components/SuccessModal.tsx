@@ -299,7 +299,7 @@ export default function SuccessModal({
                   {isSubmitting
                     ? "Sending..."
                     : variant === "pass"
-                      ? "Send my results →"
+                      ? "Join newsletter →"
                       : "Send me study tips →"}
                 </button>
               </>
