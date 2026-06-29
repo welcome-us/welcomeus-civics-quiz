@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { track } from "@/lib/analytics";
 import { gradeAnswer } from "@/lib/quiz/grade-client";
 import { submitSuccessModal } from "@/app/_actions/submit-success-modal";
 import {
@@ -75,7 +76,8 @@ export default function QuizApp({
     setGradeError(false);
     setModalOpen(false);
     setPhase("question");
-  }, [bank]);
+    track("quiz_start", { lead_capture: leadCapture });
+  }, [bank, leadCapture]);
 
   const handleSubmit = useCallback(
     async (answer: string) => {
@@ -92,6 +94,7 @@ export default function QuizApp({
         console.error("grading failed:", err);
         setGrading(false);
         setGradeError(true);
+        track("grade_error", { question_number: session.index + 1 });
         return;
       }
       setGrading(false);
@@ -120,6 +123,11 @@ export default function QuizApp({
       });
       setLastAnswer(answer);
       setPhase("feedback");
+      track("question_answered", {
+        question_number: session.index + 1,
+        result: correct ? "correct" : "incorrect",
+        correct_count: correctCount,
+      });
     },
     [session, grading],
   );
@@ -128,9 +136,15 @@ export default function QuizApp({
     if (!session) return;
     if (session.status !== "IN_PROGRESS") {
       setPhase("result");
+      track("quiz_complete", {
+        result: session.status === "PASSED" ? "passed" : "failed",
+        score: session.correct,
+        questions_answered: session.results.length,
+      });
       if (session.status === "PASSED") {
         setCaptureVariant("pass");
         setSuccessOpen(true);
+        track("lead_form_view", { variant: "pass" });
       }
       return;
     }
@@ -153,7 +167,12 @@ export default function QuizApp({
   const giveUp = useCallback(() => {
     setCaptureVariant("giveup");
     setSuccessOpen(true);
-  }, []);
+    track("quiz_give_up", {
+      question_number: (session?.index ?? 0) + 1,
+      correct_count: session?.correct ?? 0,
+    });
+    track("lead_form_view", { variant: "giveup" });
+  }, [session]);
 
   const backToStart = useCallback(() => {
     setPhase("intro");
@@ -179,15 +198,21 @@ export default function QuizApp({
     });
 
     if (!result.ok) {
+      track("lead_submit_error", { variant: captureVariant });
       return {
         ok: false,
         message: "We couldn't send your details right now. Please try again.",
       };
     }
 
+    track("generate_lead", {
+      variant: captureVariant,
+      marketing_consent: data.marketingConsent,
+      has_zip: Boolean(data.zip),
+    });
     setSuccessOpen(false);
     return { ok: true };
-  }, []);
+  }, [captureVariant]);
 
   const current = session?.questions[session.index];
   const isTerminal = session ? session.status !== "IN_PROGRESS" : false;
