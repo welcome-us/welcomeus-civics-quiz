@@ -300,7 +300,7 @@ export default function SuccessModal({
                     ? "Sending..."
                     : variant === "pass"
                       ? "Join newsletter →"
-                      : "Send me study tips →"}
+                      : "Join our newsletter →"}
                 </button>
               </>
             ) : citizenGuide ? (
