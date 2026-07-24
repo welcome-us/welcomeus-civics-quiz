@@ -100,7 +100,9 @@ export default function PreviewPage() {
         {state.kind === "interstitial" && (
           <InterstitialCard
             message={INTERSTITIALS[tipIndex % INTERSTITIALS.length]}
-            nextQuestionNumber={(tipIndex % INTERSTITIALS.length) + 1}
+            // The earliest a break can land is after 3 answers, so the button
+            // never reads "question 1" in the real flow — keep the preview honest.
+            nextQuestionNumber={(tipIndex % INTERSTITIALS.length) + 4}
             onSkip={() => setTipIndex((i) => i + 1)}
           />
         )}
