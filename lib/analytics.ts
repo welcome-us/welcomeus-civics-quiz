@@ -11,6 +11,7 @@ import { sendGTMEvent } from "@next/third-parties/google";
 type QuizResult = "passed" | "failed";
 type AnswerResult = "correct" | "incorrect";
 type LeadVariant = "pass" | "giveup";
+type InterstitialKind = "welcome" | "tip";
 
 // The single source of truth for every event we emit and the params it carries.
 // Keeping the shapes here (rather than inline at call sites) means GA4's expected
@@ -32,6 +33,21 @@ type QuizEvents = {
   };
   /** User bails out mid-quiz via "Give Up". */
   quiz_give_up: { question_number: number; correct_count: number };
+  /** A between-questions message / tip is shown. */
+  interstitial_view: {
+    message_id: string;
+    kind: InterstitialKind;
+    /** The question waiting on the other side of the break. */
+    question_number: number;
+  };
+  /** User leaves the break to resume the quiz. */
+  interstitial_skip: {
+    message_id: string;
+    kind: InterstitialKind;
+    question_number: number;
+    /** How long the break stayed on screen — reads as dwell time on the copy. */
+    seconds_visible: number;
+  };
   /** The lead-capture / success modal is shown. */
   lead_form_view: { variant: LeadVariant };
   /** Lead submitted successfully — the primary conversion (GA4 recommended name). */

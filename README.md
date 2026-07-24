@@ -33,6 +33,38 @@ Variant behavior lives in [lib/quiz/variants.ts](lib/quiz/variants.ts) — a
 shared `QuizApp` with its variant config. Adding a third flavor means editing the
 config table, not forking components.
 
+## User flow
+
+```text
+Start modal → Question → Feedback ─┬─ terminal (pass/auto-fail) → Result (+ success modal)
+                  ↑                ├─ break due → Interstitial ──┐
+                  └────────────────┴─ next question ─────────────┘
+```
+
+Every 3–4 answered questions the quiz pauses on an **interstitial** — a Welcoming
+message or study tip on a dark canvas, with artwork and a one-click skip. It is a
+breather, never a gate:
+
+- **Cadence and content** live in [lib/quiz/interstitials.ts](lib/quiz/interstitials.ts):
+  a bucket of 12 typed messages plus `planInterstitials()`, which draws a fresh
+  schedule and a shuffled message order per session. Gaps are 3–4 answers, drawn
+  per step so the rhythm isn't metronomic.
+- **Never before the result.** The terminal (win / auto-fail) check runs first, so
+  a break can't stand between a user and their score. Nothing is scheduled at
+  question 20 either.
+- **Always skippable** — a primary "Skip to question *N*" button, auto-focused so
+  Enter works immediately, plus Escape.
+- **Dark theme** is a token flip: the card sets `data-theme="dark"` on `<html>`
+  while mounted, so the whole page turns with it (palette in
+  [app/globals.css](app/globals.css)), and restores on unmount.
+- **Copy is placeholder** pending the team's final text. Swapping it means editing
+  `eyebrow` / `headline` / `body` per entry — the scheduling logic reads the bucket
+  generically and adapts to any length. Drop in real art per message via `image`
+  (raster; plain-string SVG paths need `dangerouslyAllowSVG`).
+
+Review all 12 without playing through the quiz at **`/preview`** → "Interstitial ·
+tips"; its skip button cycles the bucket.
+
 ## Architecture
 
 - **Routing is path-based within one deployment.** The `app/` folder structure

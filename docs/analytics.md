@@ -17,6 +17,8 @@ which forwards them to GA4. Events are defined and typed in
 | `question_answered` | Each graded answer | `question_number` (1–20), `result` (`correct`/`incorrect`), `correct_count` |
 | `quiz_complete` | Quiz reaches pass/fail | `result` (`passed`/`failed`), `score`, `questions_answered` |
 | `quiz_give_up` | "Give Up" clicked mid-quiz | `question_number`, `correct_count` |
+| `interstitial_view` | A between-questions message/tip is shown | `message_id`, `kind` (`welcome`/`tip`), `question_number` (the one after the break) |
+| `interstitial_skip` | User leaves the break to resume | `message_id`, `kind`, `question_number`, `seconds_visible` |
 | `lead_form_view` | Success/give-up modal shown | `variant` (`pass`/`giveup`) |
 | `generate_lead` | Lead submitted successfully | `variant`, `marketing_consent` (bool), `has_zip` (bool) |
 | `lead_submit_error` | Lead submission failed server-side | `variant` |
@@ -39,10 +41,11 @@ For each event above, forward the dataLayer push to GA4:
 
 1. **Variables → New → Data Layer Variable** for each param you want to send
    (e.g. `question_number`, `result`, `score`, `variant`, `marketing_consent`,
-   `has_zip`, `correct_count`, `questions_answered`, `lead_capture`).
+   `has_zip`, `correct_count`, `questions_answered`, `lead_capture`,
+   `message_id`, `kind`, `seconds_visible`).
 2. **Triggers → New → Custom Event.** Use event name `quiz_start`, etc., or a
    single trigger with **Event name (regex matches)**:
-   `^(quiz_start|question_answered|quiz_complete|quiz_give_up|lead_form_view|generate_lead|lead_submit_error|grade_error)$`
+   `^(quiz_start|question_answered|quiz_complete|quiz_give_up|interstitial_view|interstitial_skip|lead_form_view|generate_lead|lead_submit_error|grade_error)$`
 3. **Tags → New → Google Analytics: GA4 Event.**
    - Configuration tag: the existing GA4 Google Tag.
    - Event Name: `{{Event}}` (the built-in GTM variable — passes the dataLayer

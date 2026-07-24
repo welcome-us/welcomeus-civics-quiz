@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { track } from "@/lib/analytics";
 import { gradeAnswer } from "@/lib/quiz/grade-client";
 import { submitSuccessModal } from "@/app/_actions/submit-success-modal";
@@ -11,6 +11,7 @@ import {
   evaluateStatus,
   sampleQuestions,
 } from "@/lib/quiz/state";
+import { planInterstitials, type InterstitialMessage } from "@/lib/quiz/interstitials";
 import type {
   AnsweredQuestion,
   Feedback,
@@ -18,6 +19,7 @@ import type {
   QuizStatus,
 } from "@/lib/quiz/types";
 import FeedbackPanel from "./FeedbackPanel";
+import InterstitialCard from "./InterstitialCard";
 import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
 import StartModal from "./StartModal";
@@ -30,7 +32,7 @@ import { StarMark } from "./Wordmark";
 import WusLogo from "@/public/wus-logo.svg"
 import Image from "next/image";
 
-type Phase = "intro" | "question" | "feedback" | "result";
+type Phase = "intro" | "question" | "feedback" | "interstitial" | "result";
 
 interface Session {
   questions: PublicQuestion[];
@@ -39,6 +41,12 @@ interface Session {
   wrong: number;
   results: AnsweredQuestion[];
   status: QuizStatus;
+  /**
+   * Welcoming messages / tips to drop in mid-quiz, keyed by the number of
+   * questions answered when the break is due. Planned once per session so the
+   * rhythm and the message order are fixed from the start.
+   */
+  breaks: Map<number, InterstitialMessage>;
 }
 
 function newSession(bank: PublicQuestion[]): Session {
@@ -49,6 +57,7 @@ function newSession(bank: PublicQuestion[]): Session {
     wrong: 0,
     results: [],
     status: "IN_PROGRESS",
+    breaks: planInterstitials(),
   };
 }
 
@@ -69,11 +78,15 @@ export default function QuizApp({
   const [gradeError, setGradeError] = useState(false);
   const [successOpen, setSuccessOpen] = useState(false);
   const [captureVariant, setCaptureVariant] = useState<CaptureVariant>("pass");
+  const [interstitial, setInterstitial] = useState<InterstitialMessage | null>(null);
+  // When the current break went on screen, for the dwell-time analytics param.
+  const interstitialShownAt = useRef(0);
 
   const start = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
     setGradeError(false);
+    setInterstitial(null);
     setModalOpen(false);
     setPhase("question");
     track("quiz_start", { lead_capture: leadCapture });
@@ -132,6 +145,17 @@ export default function QuizApp({
     [session, grading],
   );
 
+  // Move on to the next question. Shared by the feedback panel's "Next" (when
+  // no break is due) and by the interstitial's skip button.
+  const advance = useCallback(() => {
+    if (!session) return;
+    setSession({ ...session, index: session.index + 1 });
+    setInterstitial(null);
+    setFeedback(null);
+    setGradeError(false);
+    setPhase("question");
+  }, [session]);
+
   const handleNext = useCallback(() => {
     if (!session) return;
     if (session.status !== "IN_PROGRESS") {
@@ -148,17 +172,43 @@ export default function QuizApp({
       }
       return;
     }
-    setSession({ ...session, index: session.index + 1 });
-    setFeedback(null);
-    setGradeError(false);
-    setPhase("question");
-  }, [session]);
+
+    // A breather is due every 3–4 answers. It sits between the feedback panel
+    // and the next question, so the index only moves once the user leaves it.
+    const due = session.breaks.get(session.results.length);
+    if (due) {
+      interstitialShownAt.current = Date.now();
+      setInterstitial(due);
+      setPhase("interstitial");
+      track("interstitial_view", {
+        message_id: due.id,
+        kind: due.kind,
+        question_number: session.results.length + 1,
+      });
+      return;
+    }
+
+    advance();
+  }, [session, advance]);
+
+  const skipInterstitial = useCallback(() => {
+    if (interstitial && session) {
+      track("interstitial_skip", {
+        message_id: interstitial.id,
+        kind: interstitial.kind,
+        question_number: session.results.length + 1,
+        seconds_visible: Math.round((Date.now() - interstitialShownAt.current) / 1000),
+      });
+    }
+    advance();
+  }, [advance, interstitial, session]);
 
   const retry = useCallback(() => {
     setSession(newSession(bank));
     setFeedback(null);
     setGradeError(false);
     setSuccessOpen(false);
+    setInterstitial(null);
     setPhase("question");
   }, [bank]);
 
@@ -179,6 +229,7 @@ export default function QuizApp({
     setSession(null);
     setFeedback(null);
     setSuccessOpen(false);
+    setInterstitial(null);
     setModalOpen(true);
   }, []);
 
@@ -278,6 +329,14 @@ export default function QuizApp({
             results={session.results}
             isTerminal={isTerminal}
             onNext={handleNext}
+          />
+        )}
+
+        {phase === "interstitial" && session && interstitial && (
+          <InterstitialCard
+            message={interstitial}
+            nextQuestionNumber={session.results.length + 1}
+            onSkip={skipInterstitial}
           />
         )}
 
