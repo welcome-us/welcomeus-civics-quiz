@@ -234,11 +234,26 @@ Screens:
 1. **Start** — short intro: 20 questions, 12 to pass, type your answers. "Start quiz" button. (Optional state selector if Option B.)
 2. **Question** — question text, category label, a single multi-line text input, and a progress indicator (e.g. "Question 7 of 20 · 5 correct"). "Submit" button. Disable submit on empty input; allow Enter-to-submit.
 3. **Feedback** (after submit) — clear ✅/❌ verdict, the official acceptable answer(s), the brief explanation, and a "Next" button (rule 5). Show updated progress.
-4. **Result** — pass or fail screen with final score (e.g. "You passed: 12 / 14 answered"), reached as soon as the win/auto-fail/finish condition fires. Offer "Try again" (new random 20).
+4. **Interstitial** — a between-questions breather carrying one Welcoming message or study tip. Flips the page to a dark theme, shows artwork (or a placeholder frame) plus a headline and short body. Always optional and always skippable — see below.
+5. **Result** — pass or fail screen with final score (e.g. "You passed: 12 / 14 answered"), reached as soon as the win/auto-fail/finish condition fires. Offer "Try again" (new random 20).
 
 Flow control:
 - After feedback, **Next** calls nothing if the returned `status` is terminal → route straight to the Result screen. Otherwise it shows `nextQuestion` from the previous response.
 - Show a loading state on Submit while scoring runs (LLM call is ~1s).
+
+**Interstitial cadence (added after v1).** The break sits *between* the Feedback and Question screens, never in front of the Result screen:
+
+```
+Question → Feedback → [terminal?] → Result
+                    → [break due?] → Interstitial → Question
+                    → Question
+```
+
+- **Scheduling** is planned once per session, keyed by the number of questions *answered*: the first break falls after 3–4 answers, then another every 3–4. The gap is drawn per step, so the rhythm is not metronomic. Nothing is ever scheduled at `TOTAL_QUESTIONS` — a breather in front of the score would only delay it.
+- **The terminal check runs first.** If a win or auto-fail has fired (rules 6–7), the user goes straight to the Result screen and sees no break. This ordering matters: it keeps the interstitial from ever standing between a user and their verdict.
+- **Messages** are drawn from a shuffled bucket, so a session never repeats one and two sessions rarely look alike.
+- **Skipping** is one click: a primary "Skip to question *N*" button, auto-focused so Enter works immediately, with Escape as a second exit. The question index only advances when the user leaves the break, so there is no "already shown" state to keep in sync.
+- **Theme.** The card sets `data-theme="dark"` on the document root while mounted and clears it on unmount, so the whole page — background, glow, header, footer — flips together via palette tokens rather than the card theming itself in isolation.
 
 ---
 

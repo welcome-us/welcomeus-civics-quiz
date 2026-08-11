@@ -26,10 +26,39 @@
   --line: rgba(74, 52, 6, 0.12);
   --line-strong: rgba(74, 52, 6, 0.22);
 
+  /* Vignette painted over the page by body::before. */
+  --vignette: rgba(74, 52, 6, 0.05);
+
   /* Resting position of the warm gold glow. BackgroundGlow eases these toward
      the cursor so the glow trails the pointer. */
   --glow-x: 82%;
   --glow-y: -8%;
+}
+
+/* ── Night mode ────────────────────────────────────────────────────────
+   Used by the between-question interstitials (InterstitialCard sets
+   data-theme="dark" on <html> while it is mounted, and clears it on the way
+   out). Only the tokens change, so every component flips with it — the deep
+   navy is the same ink the palette already uses for type, turned up. */
+:root[data-theme="dark"] {
+  --paper: #04002e;
+  --paper-deep: #0b0750;
+  --surface: #0a0645;
+  --ink: #fdfaf3;
+  --ink-soft: #b6bad2;
+  --ink-faint: #7e84a4;
+  --brand: #8ba2ff;
+  --brand-deep: #6b86f5;
+  --accent: #ff7a5e;
+  --accent-soft: rgba(226, 85, 58, 0.22);
+  --gold: #fdb913;
+  --correct: #58cd8f;
+  --correct-soft: rgba(28, 124, 74, 0.28);
+  --wrong: #ff6b83;
+  --wrong-soft: rgba(227, 6, 56, 0.24);
+  --line: rgba(253, 185, 19, 0.16);
+  --line-strong: rgba(253, 185, 19, 0.3);
+  --vignette: rgba(0, 0, 0, 0.4);
 }
 
 @theme inline {
@@ -59,6 +88,10 @@
 
 html {
   color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
 }
 
 /* Tailwind v4's Preflight no longer sets `cursor: pointer` on buttons, so
@@ -105,6 +138,11 @@ body {
     -1px -1px,
     -1px -1px;
   background-attachment: fixed;
+  /* Cross-fade the page when an interstitial flips the theme to night mode.
+     The reduced-motion block below neutralises this. */
+  transition:
+    background-color 0.55s ease,
+    color 0.55s ease;
 }
 
 /* The grid is decorative; keep it whisper-faint. */
@@ -115,7 +153,7 @@ body::before {
   background: radial-gradient(
     120% 90% at 50% 0%,
     transparent 55%,
-    rgba(74, 52, 6, 0.05) 100%
+    var(--vignette) 100%
   );
   pointer-events: none;
   z-index: 0;

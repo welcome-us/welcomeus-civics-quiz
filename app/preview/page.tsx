@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import type { AnsweredQuestion } from "@/lib/quiz/types";
+import { INTERSTITIALS } from "@/lib/quiz/interstitials";
 import StartModal from "@/app/components/StartModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import ResultScreen from "@/app/components/ResultScreen";
+import InterstitialCard from "@/app/components/InterstitialCard";
 
 /**
  * Dev-only gallery for jumping straight to any modal / result state without
@@ -24,7 +26,8 @@ type State =
   | { kind: "none" }
   | { kind: "start" }
   | { kind: "success"; variant: "pass" | "giveup"; leadCapture: boolean }
-  | { kind: "result"; status: "PASSED" | "FAILED" };
+  | { kind: "result"; status: "PASSED" | "FAILED" }
+  | { kind: "interstitial" };
 
 const STATES: { label: string; state: State }[] = [
   { label: "Start modal", state: { kind: "start" } },
@@ -34,12 +37,16 @@ const STATES: { label: string; state: State }[] = [
   { label: "Success · give up · no form", state: { kind: "success", variant: "giveup", leadCapture: false } },
   { label: "Result · passed", state: { kind: "result", status: "PASSED" } },
   { label: "Result · failed", state: { kind: "result", status: "FAILED" } },
+  { label: "Interstitial · messages", state: { kind: "interstitial" } },
 ];
 
 export default function PreviewPage() {
   if (process.env.NODE_ENV === "production") return null;
 
   const [state, setState] = useState<State>(STATES[0].state);
+  // Which message the interstitial preview is showing — its skip button cycles
+  // through the whole bucket so all 12 can be read in one pass.
+  const [messageIndex, setTipIndex] = useState(0);
   const noop = () => {};
   const close = () => setState({ kind: "none" });
 
@@ -87,6 +94,16 @@ export default function PreviewPage() {
             leadCapture={state.leadCapture}
             onSubmit={() => ({ ok: true })}
             onClose={close}
+          />
+        )}
+
+        {state.kind === "interstitial" && (
+          <InterstitialCard
+            message={INTERSTITIALS[messageIndex % INTERSTITIALS.length]}
+            // The earliest a break can land is after 3 answers, so the button
+            // never reads "question 1" in the real flow — keep the preview honest.
+            nextQuestionNumber={(messageIndex % INTERSTITIALS.length) + 4}
+            onSkip={() => setTipIndex((i) => i + 1)}
           />
         )}
 
