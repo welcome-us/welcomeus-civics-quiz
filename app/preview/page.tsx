@@ -37,7 +37,7 @@ const STATES: { label: string; state: State }[] = [
   { label: "Success · give up · no form", state: { kind: "success", variant: "giveup", leadCapture: false } },
   { label: "Result · passed", state: { kind: "result", status: "PASSED" } },
   { label: "Result · failed", state: { kind: "result", status: "FAILED" } },
-  { label: "Interstitial · tips", state: { kind: "interstitial" } },
+  { label: "Interstitial · messages", state: { kind: "interstitial" } },
 ];
 
 export default function PreviewPage() {
@@ -46,7 +46,7 @@ export default function PreviewPage() {
   const [state, setState] = useState<State>(STATES[0].state);
   // Which message the interstitial preview is showing — its skip button cycles
   // through the whole bucket so all 12 can be read in one pass.
-  const [tipIndex, setTipIndex] = useState(0);
+  const [messageIndex, setTipIndex] = useState(0);
   const noop = () => {};
   const close = () => setState({ kind: "none" });
 
@@ -99,10 +99,10 @@ export default function PreviewPage() {
 
         {state.kind === "interstitial" && (
           <InterstitialCard
-            message={INTERSTITIALS[tipIndex % INTERSTITIALS.length]}
+            message={INTERSTITIALS[messageIndex % INTERSTITIALS.length]}
             // The earliest a break can land is after 3 answers, so the button
             // never reads "question 1" in the real flow — keep the preview honest.
-            nextQuestionNumber={(tipIndex % INTERSTITIALS.length) + 4}
+            nextQuestionNumber={(messageIndex % INTERSTITIALS.length) + 4}
             onSkip={() => setTipIndex((i) => i + 1)}
           />
         )}

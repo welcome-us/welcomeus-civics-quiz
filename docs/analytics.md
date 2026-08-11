@@ -17,7 +17,7 @@ which forwards them to GA4. Events are defined and typed in
 | `question_answered` | Each graded answer | `question_number` (1–20), `result` (`correct`/`incorrect`), `correct_count` |
 | `quiz_complete` | Quiz reaches pass/fail | `result` (`passed`/`failed`), `score`, `questions_answered` |
 | `quiz_give_up` | "Give Up" clicked mid-quiz | `question_number`, `correct_count` |
-| `interstitial_view` | A between-questions message/tip is shown | `message_id`, `kind` (`welcome`/`tip`), `question_number` (the one after the break) |
+| `interstitial_view` | A between-questions message is shown | `message_id`, `kind` (`welcome`/`quote`), `question_number` (the one after the break) |
 | `interstitial_skip` | User leaves the break to resume | `message_id`, `kind`, `question_number`, `seconds_visible` |
 | `lead_form_view` | Success/give-up modal shown | `variant` (`pass`/`giveup`) |
 | `generate_lead` | Lead submitted successfully | `variant`, `marketing_consent` (bool), `has_zip` (bool) |

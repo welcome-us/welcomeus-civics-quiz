@@ -1,30 +1,27 @@
-// Welcoming messages + study tips shown between questions.
+// Welcome.US messages shown between questions.
 //
 // Every 3–4 answered questions the quiz pauses on a full-screen "breather": a
 // dark-themed card with one message from the bucket below. The break is always
 // optional — a single button skips straight to the next question.
 //
-// ⚠️ PLACEHOLDER COPY. The bucket below is structured, not final: the team is
-// writing the real messages. Swap the `eyebrow` / `headline` / `body` (and drop
-// in `image`) per entry and nothing else has to change — the scheduling logic
-// reads the bucket generically and adapts to any length.
+// The copy below is the team's approved set: 8 Citizen Guides messages plus 4
+// testimonial quotes. Swapping copy means editing the three strings per entry —
+// the scheduling logic reads the bucket generically and adapts to any length,
+// so adding or cutting messages needs no code change.
 
 import { shuffle, TOTAL_QUESTIONS } from "./state";
 
-/** Which inline glyph the card draws in its art frame. */
-export type InterstitialIcon =
-  | "star"
-  | "flag"
-  | "book"
-  | "lightbulb"
-  | "hands"
-  | "map";
+/**
+ * Which piece of Welcome.US artwork the card draws. Every value here needs a
+ * matching illustration in InterstitialGlyphs.
+ */
+export type InterstitialIcon = "star" | "flag" | "lightbulb" | "hands";
 
 export interface InterstitialMessage {
   /** Stable id — also the analytics label, so keep it if you reword the copy. */
   id: string;
-  /** "welcome" = mission/encouragement, "tip" = test-taking or study advice. */
-  kind: "welcome" | "tip";
+  /** "welcome" = Citizen Guides message, "quote" = someone's own words. */
+  kind: "welcome" | "quote";
   eyebrow: string;
   headline: string;
   body: string;
@@ -41,101 +38,100 @@ export interface InterstitialMessage {
 
 export const INTERSTITIALS: readonly InterstitialMessage[] = [
   {
-    id: "belonging",
+    id: "nobody-studies-alone",
     kind: "welcome",
-    eyebrow: "Welcome.US",
-    headline: "You belong here.",
-    body: "Every person taking this test is doing something brave — choosing a country, and being chosen back. Whatever your score today, that part is already true.",
-    icon: "star",
+    eyebrow: "Citizen Guides",
+    headline: "Nobody should study alone.",
+    body: "Welcome.US's Citizen Guide program pairs a volunteer with legal green card holders, studying for this exact test. They meet virtually, covering one question at a time.",
+    icon: "hands",
   },
   {
-    id: "newcomers-strengthen",
+    id: "want-to-help",
     kind: "welcome",
-    eyebrow: "Did you know",
-    headline: "Newcomers make communities stronger.",
-    body: "Immigrants and their children have started more than 40% of America's largest companies — and they show up as neighbors, nurses, and teachers long before anyone counts them.",
+    eyebrow: "Citizen Guides",
+    headline: "Want to help someone pass?",
+    body: "People across the country are studying to become citizens right now. When you finish your quiz, you can find out how to walk alongside one of them.",
     icon: "flag",
   },
   {
-    id: "say-it-out-loud",
-    kind: "tip",
-    eyebrow: "Study tip",
-    headline: "Say your answers out loud.",
-    body: "The real interview is spoken, not written. Practicing aloud trains both your recall and your ear, so the officer's phrasing feels familiar on test day.",
-    icon: "lightbulb",
-  },
-  {
-    id: "short-answers-win",
-    kind: "tip",
-    eyebrow: "Study tip",
-    headline: "Short answers are enough.",
-    body: "You don't need a full sentence. \"The Constitution\" counts. Officers are listening for the key fact, not an essay — extra words only add room for error.",
-    icon: "book",
-  },
-  {
-    id: "not-alone",
+    id: "good-neighbors",
     kind: "welcome",
-    eyebrow: "You're not alone",
-    headline: "Nobody should have to study alone.",
-    body: "Welcome.US pairs green card holders with volunteers who study alongside them, one question at a time. Most say the encouragement mattered as much as the answers.",
+    eyebrow: "Everyday good",
+    headline: "Good neighbors are everywhere.",
+    body: "Most people just want to lend a hand where they can. Helping someone virtually prepare for their citizenship test is one small way to do exactly that.",
     icon: "hands",
-    link: { label: "Meet the Citizen Guide program", href: "https://welcome.us/citizenship" },
   },
   {
-    id: "ten-of-one-hundred",
-    kind: "tip",
-    eyebrow: "Good to know",
-    headline: "The real test is 10 questions.",
-    body: "An officer picks 10 from the official bank of 100 and stops as soon as you get 6 right. We ask 20 here so you get more practice per sitting.",
-    icon: "book",
-  },
-  {
-    id: "mistakes-are-practice",
+    id: "help-a-future-citizen",
     kind: "welcome",
-    eyebrow: "Keep going",
-    headline: "A wrong answer is just a question you haven't learned yet.",
-    body: "The people who pass aren't the ones who never miss — they're the ones who came back to the questions that stung.",
-    icon: "star",
-  },
-  {
-    id: "most-people-pass",
-    kind: "welcome",
-    eyebrow: "Did you know",
-    headline: "About 9 in 10 applicants pass.",
-    body: "The civics test has a high pass rate, and you get a second chance if the first attempt doesn't go your way. Nerves are normal; the odds are on your side.",
+    eyebrow: "Pay it forward",
+    headline: "Help a future citizen.",
+    body: "You're attempting real questions on the U.S. citizenship exam. Right now, someone nearby is studying those same questions, hoping to become an American.",
     icon: "flag",
   },
   {
-    id: "study-in-your-language",
-    kind: "tip",
-    eyebrow: "Study tip",
-    headline: "Learn the idea first, the English second.",
-    body: "Understand what a branch of government does in whichever language you think in. The English words attach much faster once the concept is already yours.",
-    icon: "lightbulb",
-  },
-  {
-    id: "know-your-state",
-    kind: "tip",
-    eyebrow: "Study tip",
-    headline: "Some answers depend on where you live.",
-    body: "Your governor, your senators, your representative — those change by state and over time. Look yours up once and check them again close to your interview.",
-    icon: "map",
-  },
-  {
-    id: "little-and-often",
-    kind: "tip",
-    eyebrow: "Study tip",
-    headline: "Ten minutes a day beats one long cram.",
-    body: "Spacing practice across days is how facts move into long-term memory. A short round on the bus does more than an anxious hour the night before.",
-    icon: "lightbulb",
-  },
-  {
-    id: "share-the-quiz",
+    id: "by-the-book",
     kind: "welcome",
-    eyebrow: "Welcome.US",
-    headline: "Most Americans born here couldn't pass this.",
-    body: "When you're done, send this to a friend who's never had to prove it. Understanding the test is its own kind of welcome.",
+    eyebrow: "Did you know?",
+    headline: "They're doing it by the book.",
+    body: "The people Citizen Guides help are here legally, playing by the rules, and studying hard to earn their citizenship. They'd love a study partner.",
+    icon: "star",
+  },
+  {
+    id: "helping-gives-back",
+    kind: "welcome",
+    eyebrow: "Why it helps",
+    headline: "Helping others gives back.",
+    body: "Citizen Guides say they come away with more than they gave. It's only one hour a week that ultimately changes someone's life.",
     icon: "hands",
+  },
+  {
+    id: "no-expert-needed",
+    kind: "welcome",
+    eyebrow: "Citizen Guides",
+    headline: "You don't need to be an expert.",
+    body: "Most Citizen Guides start out unsure they could pass this test themselves. In fact, two-thirds of people born in the U.S. can't. What matters isn't the answers; it's showing up.",
+    icon: "lightbulb",
+  },
+  {
+    id: "one-hour-a-week",
+    kind: "welcome",
+    eyebrow: "Citizen Guides",
+    headline: "One neighbor, one hour a week.",
+    body: "Being a Citizen Guide isn't a big commitment. It's one person helping another feel ready. A few hours that can mean everything to someone earning citizenship.",
+    icon: "hands",
+  },
+  {
+    id: "quote-heather",
+    kind: "quote",
+    eyebrow: "In their words",
+    headline: "A volunteer who tutors for this test.",
+    body: "“It's the most impactful thing I've ever done in my life. I'm a mom and a grandmother, I was a teacher. I'm a wife.” —Heather",
+    icon: "hands",
+  },
+  {
+    id: "quote-susie",
+    kind: "quote",
+    eyebrow: "In their words",
+    headline: "A tutor answers a common worry.",
+    body: "“No [aspiring American] is taking anything away from you. They're offering you something. A chance to make your life more interesting.” —Susie",
+    icon: "star",
+  },
+  {
+    id: "quote-janis",
+    kind: "quote",
+    eyebrow: "In their words",
+    headline: "An interpreter for U.S. forces, now a citizen.",
+    body: "“Now I'm a proud U.S. citizen. My wife, my kids, everybody's a citizen. We have a beautiful life here in Northern Virginia.” —Janis",
+    icon: "flag",
+  },
+  {
+    id: "quote-azad",
+    kind: "quote",
+    eyebrow: "In their words",
+    headline: "He aided U.S. troops, then earned citizenship.",
+    body: "“When I swore in and I saw the American flag, it was everything I worked really hard for finally paying off.” —Azad",
+    icon: "flag",
   },
 ];
 
