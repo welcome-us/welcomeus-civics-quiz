@@ -3,11 +3,20 @@
 **Scope:** the interstitial ("Tip / Message") screens that appear between questions in the
 Welcome.US civics quiz. Nothing else in the quiz is in scope for this workflow.
 
-**Status:** Stage 4 complete — the real copy set (8 Citizen Guides messages + 4 testimonial quotes)
-and the delivered icon artwork are in the build, replacing the placeholders. Ready for Stage 5
-review. Note that Stages 2 and 3 were run informally: the copy sheet arrived without a recorded
-flow signoff, so if the decision table below still needs approving, it is being approved against a
-build that already carries the real content.
+**Status:** **Live in production** as of 2026-08-12 (PR #24, commit `858c9a4`). The real copy set —
+8 Citizen Guides messages + 4 testimonial quotes — and the four Welcome.US illustrations replaced
+the placeholders and went straight to prod.
+
+Stages 5 through 7 were bypassed, and Stages 2 and 3 were run informally: the copy sheet arrived
+without a recorded flow signoff, and the merge happened without a review round, a written approval,
+or a brand/legal pass on the one factual claim in the set. That is a decision the team is entitled
+to make on content-only changes — this note records it rather than disputing it. What it means
+practically:
+
+- The [open items](#open-items) below are open **in production**, not in a preview build.
+- Rollback is still a single revert of the merge commit on `master` (see Stage 8), so the cost of
+  discovering a problem late is low.
+- If this content set is revised, the stages below are the process to run — from Stage 3.
 
 | | |
 | --- | --- |
@@ -15,8 +24,8 @@ build that already carries the real content.
 | Content lead | |
 | Design lead | |
 | Engineering | |
-| Approver (final signoff) | |
-| Target prod date | |
+| Approver (final signoff) | — (not recorded) |
+| Target prod date | 2026-08-12 — shipped |
 
 ---
 
@@ -25,8 +34,9 @@ build that already carries the real content.
 The quiz is in production. The interstitial flow was already built, deployed, and instrumented —
 but with **deliberately placeholder copy and placeholder artwork**. So this is not a plan to build
 a new product; it is a change-management plan for replacing that placeholder content in a live
-product with the team's real content. (That swap has now happened in `develop` — see Status above —
-so the stages below are the path from here to prod, not from zero.)
+product with the team's real content. (That swap has now shipped — see Status above — so the stages
+below are a record of how it went and the process to run on the next revision, not a plan from
+zero.)
 
 That distinction is what makes the formal stages worth running:
 
@@ -50,7 +60,8 @@ Start modal → Question → Feedback ─┬─ terminal (pass/auto-fail) → Re
                   └────────────────┴─ next question ─────────────┘
 ```
 
-Behavior the team is being asked to sign off on:
+Behavior as shipped — the rows the team was asked to sign off on, none of which changed with the
+content swap:
 
 | Decision | As built | Reference |
 | --- | --- | --- |
@@ -66,6 +77,22 @@ A user answering all 20 questions sees roughly **5 of the 12** in one sitting.
 
 ---
 
+## Open items
+
+These are live in front of applicants right now. None of them is a bug — the feature works — but
+each is something the skipped review stages would normally have caught.
+
+| # | Item | Owner | Why it matters |
+| --- | --- | --- | --- |
+| 1 | **Uncited factual claim.** `no-expert-needed` states "two-thirds of people born in the U.S. can't" pass the test. No source was supplied with the copy sheet. | Content + brand/legal | The only checkable claim in the set. Applicants may repeat it. Needs a citation and a review date. |
+| 2 | **Two reconstructed body strings.** The copy sheet arrived with two cells clipped at the column edge. `no-expert-needed` was completed as "…the answers; it's showing up." and `one-hour-a-week` as "…someone earning citizenship." | Content | The endings are inferred, not supplied. The lengths work out, but the words are a guess and are now shipping. |
+| 3 | **Post-deploy smoke test not recorded.** See the Stage 8 checklist. | Engineering | Cheap to run, and the GA4 half (`message_id` values changed for all 12) is the only way to know the instrumentation survived the swap. |
+
+Two standing items also carry forward — see [Known gaps](#known-gaps-to-resolve-in-stage-4) for the
+`/preview` gating and the four-icons-across-twelve-messages question.
+
+---
+
 ## Stages
 
 Each stage has an owner, a concrete artifact, and an exit criterion. A stage is not "done" because
@@ -77,7 +104,7 @@ time passed — it is done when the exit criterion is met.
 - **Artifact:** working build + the decision table above
 - **Exit:** flow shared with the team — done
 
-### 2. Signoff of user flow
+### 2. Signoff of user flow — ⚠️ not recorded
 
 - **Owner:** Approver, with Content + Design input
 - **Input:** the decision table above; a walkthrough of the live build
@@ -97,8 +124,9 @@ time passed — it is done when the exit criterion is met.
 - **Artifact:** a filled-in copy sheet (one row per message) + artwork files
 - **Exit:** 12 complete entries — every required field filled, lengths within target, every factual
   claim sourced
-- **Delivered:** a 12-row copy sheet (8 core + 4 quotes) and four illustrations. Two items still
-  open against the exit criterion — see the note under Stage 4.
+- **Delivered:** a 12-row copy sheet (8 core + 4 quotes) and four illustrations. The exit criterion
+  was not fully met — two cells arrived clipped and no claim sources came with the sheet. See
+  [Open items](#open-items) 1 and 2.
 
 The engineering side of this stage is zero-cost by design: the message bucket is a typed list, and
 the scheduling logic reads it generically. Swapping copy means editing three strings per entry;
@@ -112,19 +140,12 @@ adding or cutting messages needs no code change at all.
 - **Exit:** copy in place, artwork wired, `npm run build` and `npm run lint` clean, reviewable on a
   Vercel Preview URL
 
-Carried into Stage 5 rather than blocking the build:
+Build shipped as PR #24 (`858c9a4`). Two content questions were raised here rather than blocking
+the build — the reconstructed body strings and the uncited claim. Because Stages 5–7 were skipped,
+they went to prod unresolved and are now tracked in [Open items](#open-items), along with two
+standing items in [Known gaps](#known-gaps-to-resolve-in-stage-4).
 
-- **Two body strings were reconstructed.** The copy sheet arrived with two cells clipped at the
-  column edge. `no-expert-needed` ends "…What matters isn't the answers; it's showing up." and
-  `one-hour-a-week` ends "…mean everything to someone earning citizenship." Both endings are
-  inferred, not supplied — confirm against the source sheet.
-- **No claim sources were supplied.** One factual claim survives into the live set: "two-thirds of
-  people born in the U.S. can't" pass the test (`no-expert-needed`). It needs a citation and a
-  review date before Stage 7.
-
-Plus two standing items (see [Known gaps](#known-gaps-to-resolve-in-stage-4)).
-
-### 5. Review / feedback
+### 5. Review / feedback — ⏭️ skipped
 
 - **Owner:** Content + Design + Approver
 - **Input:** Vercel Preview URL
@@ -132,26 +153,32 @@ Plus two standing items (see [Known gaps](#known-gaps-to-resolve-in-stage-4)).
 - **Exit:** feedback delivered and triaged into "changing" / "not changing, because…"
 - **Check specifically:** copy at mobile width (headlines wrap differently), artwork against the
   dark palette, tone reading in sequence rather than one at a time
+- **Not run.** Those three checks have still never happened — they are now doable against prod
+  rather than a Preview URL. The longest body in the set (`no-expert-needed`, 177 chars) is the one
+  to look at first on a narrow screen.
 
-### 6. Updates
+### 6. Updates — ⏭️ skipped (nothing to close, since Stage 5 didn't run)
 
 - **Owner:** Engineering (copy), Content/Design (rewrites)
 - **Exit:** every Stage 5 item closed. If a rewrite is substantive, it loops back through 5 — but
   cap it at **two rounds**; a third round means the Stage 2 signoff didn't hold, and that is the
   thing to fix, not the copy.
 
-### 7. Signoff
+### 7. Signoff — ⏭️ skipped
 
 - **Owner:** Approver
 - **Artifact:** written approval on the final Preview URL
 - **Exit:** explicit go/no-go recorded, referencing the specific Preview deployment
 - **Include here:** brand/legal review of factual claims, if that's a separate desk
+- **Not run.** The go decision was the merge itself. The brand/legal pass on the two-thirds claim
+  is [Open item 1](#open-items).
 
-### 8. Push to prod
+### 8. Push to prod — ✅ done, smoke test outstanding
 
 - **Owner:** Engineering
 - **Mechanics:** merge `develop` → `master`; Vercel deploys `master` to the live subdomain
-- **Exit:** post-deploy smoke test passes:
+- **Done:** PR #24 merged 2026-08-12 as `437c582`, carrying `858c9a4`
+- **Exit:** post-deploy smoke test passes — **not yet recorded** ([Open item 3](#open-items)):
   - play `/exam` past question 4 and confirm a break appears with real copy and artwork
   - confirm the skip button, Enter, and Escape all resume the quiz
   - confirm `/civics` behaves the same
@@ -210,7 +237,9 @@ rewrite is substantive enough that you'd want a clean before/after in the data.
 
 ## Known gaps to resolve in Stage 4
 
-Two things will bite during Stage 5 review if they aren't handled first.
+Both were written as Stage 4 items and neither was handled, so they carry forward. Stage 5 never
+ran, which means gap 1 cost nothing this time — but it will cost the next revision, and gap 2 is
+now a live question rather than a review question.
 
 **1. The `/preview` gallery doesn't work on deployed URLs.** There's an internal page at
 `/preview` that renders every screen state — including a cycler through all 12 interstitials —
@@ -230,11 +259,11 @@ Options, cheapest first:
 
 **2. Artwork is delivered, but as four icons rather than twelve pieces.** Design supplied four
 illustrations — hands, flag, star, lightbulb — and the copy sheet assigns one to each message, so
-several messages share art (hands 5, flag 4, star 2, lightbulb 1). That is a legitimate launch state and it is
-what is in the build. What it means for review: at ~5 messages per sitting, a player has a real
-chance of seeing the same illustration twice. Decide at Stage 5 whether that reads as a consistent
-visual system or as a repeat — and if it's a repeat, the fix is more icons or per-message `image`
-artwork, not a code change.
+several messages share art (hands 5, flag 4, star 2, lightbulb 1). That is a legitimate launch
+state and it is what shipped. At ~5 messages per sitting, a player has a real chance of seeing the
+same illustration twice — most likely the hands, which carries five of the twelve. Worth deciding
+whether that reads as a consistent visual system or as a repeat; if it's a repeat, the fix is more
+icons or per-message `image` artwork, not a code change.
 
 ---
 
@@ -249,8 +278,17 @@ add friction?" is answerable without further work
 
 `seconds_visible` per `message_id` is effectively dwell time on each piece of copy: the messages
 people actually read versus the ones they skip past. Compare quiz completion rate before and after
-launch to confirm the breaks aren't costing finishers. Worth agreeing at Stage 2 on how long to
-wait before reading the data, and who reviews it — otherwise this stage quietly never happens.
+launch to confirm the breaks aren't costing finishers.
+
+**The clean break is 2026-08-12.** Every `message_id` changed at that deploy, so the old ids
+(`belonging`, `say-it-out-loud`, …) stop appearing and the new ones start — which makes the
+before/after split unambiguous, but also means there is no per-message continuity across it. `kind`
+values changed too (`tip` → `quote`), so any saved GA4 segment filtering on `tip` now matches
+nothing.
+
+Two things are still undecided: how long to wait before reading the data, and who reads it. Stage 2
+was where that was supposed to be settled and it wasn't — so this is the stage most likely to
+quietly never happen. Someone should put a date on it.
 
 ---
 
@@ -259,4 +297,6 @@ wait before reading the data, and who reviews it — otherwise this stage quietl
 | Date | Stage | Note |
 | --- | --- | --- |
 | | 1 | Flow proposed and built with placeholder content |
-| 2026-08-11 | 3–4 | Real copy sheet (8 Citizen Guides messages + 4 quotes) and four icons received and built into `develop`. `kind` changed from `welcome`/`tip` to `welcome`/`quote`; unused `book` and `map` icons dropped. Two body strings reconstructed from clipped cells — see Stage 4. |
+| 2026-08-11 | 3–4 | Real copy sheet (8 Citizen Guides messages + 4 quotes) and four icons received and built into `develop` (`858c9a4`). `kind` changed from `welcome`/`tip` to `welcome`/`quote`; unused `book` and `map` icons dropped. Two body strings reconstructed from clipped cells. |
+| 2026-08-12 | 5–7 | Skipped. No review round, no written signoff, no brand/legal pass. |
+| 2026-08-12 | 8 | PR #24 merged to `master` (`437c582`) — content live in production. Smoke test not yet recorded; see [Open items](#open-items). |
