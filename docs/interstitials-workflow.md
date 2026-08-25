@@ -52,7 +52,10 @@ That distinction is what makes the formal stages worth running:
 
 ## What is already built (Stage 1 output)
 
-The proposed user flow, as shipped:
+The proposed user flow, as shipped. It applies to the 20-question routes only —
+`/trivia` sets `interstitials: false` in [lib/quiz/variants.ts](../lib/quiz/variants.ts)
+and shows no between-question screens at all, so nothing in this document needs
+signoff for that route.
 
 ```text
 Start modal → Question → Feedback ─┬─ terminal (pass/auto-fail) → Result (+ success modal)
@@ -300,3 +303,4 @@ quietly never happen. Someone should put a date on it.
 | 2026-08-11 | 3–4 | Real copy sheet (8 Citizen Guides messages + 4 quotes) and four icons received and built into `develop` (`858c9a4`). `kind` changed from `welcome`/`tip` to `welcome`/`quote`; unused `book` and `map` icons dropped. Two body strings reconstructed from clipped cells. |
 | 2026-08-12 | 5–7 | Skipped. No review round, no written signoff, no brand/legal pass. |
 | 2026-08-12 | 8 | PR #24 merged to `master` (`437c582`) — content live in production. Smoke test not yet recorded; see [Open items](#open-items). |
+| 2026-08-24 | — | New `/trivia` route added with `interstitials: false`. No content or signoff impact; the bucket and cadence are untouched. |

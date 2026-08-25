@@ -5,12 +5,11 @@ import { track } from "@/lib/analytics";
 import { gradeAnswer } from "@/lib/quiz/grade-client";
 import { submitSuccessModal } from "@/app/_actions/submit-success-modal";
 import {
-  PASS_THRESHOLD,
-  TOTAL_QUESTIONS,
   computeProgress,
   evaluateStatus,
   sampleQuestions,
 } from "@/lib/quiz/state";
+import type { VariantConfig } from "@/lib/quiz/variants";
 import { planInterstitials, type InterstitialMessage } from "@/lib/quiz/interstitials";
 import type {
   AnsweredQuestion,
@@ -19,6 +18,7 @@ import type {
   QuizStatus,
 } from "@/lib/quiz/types";
 import FeedbackPanel from "./FeedbackPanel";
+import { QuizConfigProvider, useQuizConfig } from "./QuizConfigContext";
 import InterstitialCard from "./InterstitialCard";
 import QuestionCard from "./QuestionCard";
 import ResultScreen from "./ResultScreen";
@@ -49,26 +49,48 @@ interface Session {
   breaks: Map<number, InterstitialMessage>;
 }
 
-function newSession(bank: PublicQuestion[]): Session {
+function newSession(bank: PublicQuestion[], config: VariantConfig): Session {
   return {
-    questions: sampleQuestions(bank),
+    questions: sampleQuestions(bank, {
+      count: config.totalQuestions,
+      maxEasy: config.maxEasy,
+    }),
     index: 0,
     correct: 0,
     wrong: 0,
     results: [],
     status: "IN_PROGRESS",
-    breaks: planInterstitials(),
+    // A variant with breaks turned off gets an empty schedule, so handleNext
+    // never finds one due and the quiz runs question to question.
+    breaks: config.interstitials
+      ? planInterstitials(config.totalQuestions)
+      : new Map(),
   };
 }
 
+/**
+ * Route entry point: publishes the variant config to the tree, then renders the
+ * quiz. The split exists because the quiz itself reads the config through
+ * useQuizConfig, which a component cannot do from inside its own provider.
+ */
 export default function QuizApp({
   bank,
-  leadCapture = true,
+  config,
 }: {
   bank: PublicQuestion[];
-  /** Route-selected: true renders the lead-capture form on the success modal. */
-  leadCapture?: boolean;
+  /** Route-selected variant config — see lib/quiz/variants.ts. */
+  config: VariantConfig;
 }) {
+  return (
+    <QuizConfigProvider config={config}>
+      <Quiz bank={bank} />
+    </QuizConfigProvider>
+  );
+}
+
+function Quiz({ bank }: { bank: PublicQuestion[] }) {
+  const config = useQuizConfig();
+  const { id: quizVariant, leadCapture, totalQuestions, passThreshold } = config;
   const [phase, setPhase] = useState<Phase>("intro");
   const [modalOpen, setModalOpen] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
@@ -83,14 +105,14 @@ export default function QuizApp({
   const interstitialShownAt = useRef(0);
 
   const start = useCallback(() => {
-    setSession(newSession(bank));
+    setSession(newSession(bank, config));
     setFeedback(null);
     setGradeError(false);
     setInterstitial(null);
     setModalOpen(false);
     setPhase("question");
-    track("quiz_start", { lead_capture: leadCapture });
-  }, [bank, leadCapture]);
+    track("quiz_start", { quiz_variant: quizVariant, lead_capture: leadCapture });
+  }, [bank, config, leadCapture, quizVariant]);
 
   const handleSubmit = useCallback(
     async (answer: string) => {
@@ -116,7 +138,11 @@ export default function QuizApp({
       const { correct } = verdict;
       const correctCount = session.correct + (correct ? 1 : 0);
       const wrongCount = session.wrong + (correct ? 0 : 1);
-      const status = evaluateStatus(correctCount, wrongCount);
+      const status = evaluateStatus(correctCount, wrongCount, {
+        total: totalQuestions,
+        passThreshold,
+        endEarly: config.endEarly,
+      });
       const results = [...session.results, { question, userAnswer: answer, correct }];
 
       setSession({
@@ -131,7 +157,7 @@ export default function QuizApp({
         acceptableAnswers: verdict.acceptableAnswers,
         explanation: verdict.explanation,
         status,
-        progress: computeProgress(correctCount, wrongCount),
+        progress: computeProgress(correctCount, wrongCount, totalQuestions),
         reason: verdict.reason,
       });
       setLastAnswer(answer);
@@ -142,7 +168,7 @@ export default function QuizApp({
         correct_count: correctCount,
       });
     },
-    [session, grading],
+    [session, grading, totalQuestions, passThreshold, config.endEarly],
   );
 
   // Move on to the next question. Shared by the feedback panel's "Next" (when
@@ -160,15 +186,21 @@ export default function QuizApp({
     if (!session) return;
     if (session.status !== "IN_PROGRESS") {
       setPhase("result");
+      const passed = session.status === "PASSED";
       track("quiz_complete", {
-        result: session.status === "PASSED" ? "passed" : "failed",
+        quiz_variant: quizVariant,
+        result: passed ? "passed" : "failed",
         score: session.correct,
         questions_answered: session.results.length,
       });
-      if (session.status === "PASSED") {
-        setCaptureVariant("pass");
+      // A passing score always opens the modal. Variants with leadOnFinish set
+      // ask everyone who reaches the end, so a losing score gets the form too —
+      // with the consolation message instead of the congratulations.
+      if (passed || config.leadOnFinish) {
+        const captured = passed ? "pass" : "fail";
+        setCaptureVariant(captured);
         setSuccessOpen(true);
-        track("lead_form_view", { variant: "pass" });
+        track("lead_form_view", { quiz_variant: quizVariant, variant: captured });
       }
       return;
     }
@@ -189,7 +221,7 @@ export default function QuizApp({
     }
 
     advance();
-  }, [session, advance]);
+  }, [session, advance, config.leadOnFinish, quizVariant]);
 
   const skipInterstitial = useCallback(() => {
     if (interstitial && session) {
@@ -204,13 +236,13 @@ export default function QuizApp({
   }, [advance, interstitial, session]);
 
   const retry = useCallback(() => {
-    setSession(newSession(bank));
+    setSession(newSession(bank, config));
     setFeedback(null);
     setGradeError(false);
     setSuccessOpen(false);
     setInterstitial(null);
     setPhase("question");
-  }, [bank]);
+  }, [bank, config]);
 
   // Bail out mid-quiz: surface the same lead-capture form with the give-up
   // message instead of a passing score.
@@ -221,8 +253,8 @@ export default function QuizApp({
       question_number: (session?.index ?? 0) + 1,
       correct_count: session?.correct ?? 0,
     });
-    track("lead_form_view", { variant: "giveup" });
-  }, [session]);
+    track("lead_form_view", { quiz_variant: quizVariant, variant: "giveup" });
+  }, [session, quizVariant]);
 
   const backToStart = useCallback(() => {
     setPhase("intro");
@@ -249,7 +281,7 @@ export default function QuizApp({
     });
 
     if (!result.ok) {
-      track("lead_submit_error", { variant: captureVariant });
+      track("lead_submit_error", { quiz_variant: quizVariant, variant: captureVariant });
       return {
         ok: false,
         message: "We couldn't send your details right now. Please try again.",
@@ -257,13 +289,14 @@ export default function QuizApp({
     }
 
     track("generate_lead", {
+      quiz_variant: quizVariant,
       variant: captureVariant,
       marketing_consent: data.marketingConsent,
       has_zip: Boolean(data.zip),
     });
     setSuccessOpen(false);
     return { ok: true };
-  }, [captureVariant]);
+  }, [captureVariant, quizVariant]);
 
   const current = session?.questions[session.index];
   const isTerminal = session ? session.status !== "IN_PROGRESS" : false;
@@ -370,6 +403,8 @@ export default function QuizApp({
 }
 
 function IntroHero({ onStart }: { onStart: () => void }) {
+  const { totalQuestions, passThreshold } = useQuizConfig();
+
   return (
     <div className="animate-float-up text-center">
       <span className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 font-ui text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft shadow-sm">
@@ -384,7 +419,7 @@ function IntroHero({ onStart }: { onStart: () => void }) {
       </h1>
 
       <p className="mx-auto mt-5 max-w-md text-pretty font-body text-lg leading-relaxed text-ink-soft">
-        {TOTAL_QUESTIONS} questions, {PASS_THRESHOLD} to pass. Type your answers
+        {totalQuestions} questions, {passThreshold} to pass. Type your answers
         in your own words — we grade them the way a fair officer would.
       </p>
 

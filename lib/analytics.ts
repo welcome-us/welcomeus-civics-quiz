@@ -7,10 +7,12 @@
 // call sites never need to guard on it.
 
 import { sendGTMEvent } from "@next/third-parties/google";
+import type { QuizVariant } from "@/lib/quiz/variants";
 
 type QuizResult = "passed" | "failed";
 type AnswerResult = "correct" | "incorrect";
-type LeadVariant = "pass" | "giveup";
+/** Which message the lead form carried — not to be confused with quiz_variant. */
+type LeadVariant = "pass" | "fail" | "giveup";
 type InterstitialKind = "welcome" | "quote";
 
 // The single source of truth for every event we emit and the params it carries.
@@ -18,7 +20,7 @@ type InterstitialKind = "welcome" | "quote";
 // payloads live in one place — mirror any change here in docs/analytics.md.
 type QuizEvents = {
   /** Quiz session begins (Start modal confirmed). */
-  quiz_start: { lead_capture: boolean };
+  quiz_start: { quiz_variant: QuizVariant; lead_capture: boolean };
   /** One graded answer. High volume — drives per-question drop-off analysis. */
   question_answered: {
     question_number: number;
@@ -27,6 +29,7 @@ type QuizEvents = {
   };
   /** Quiz reaches a terminal pass/fail state. */
   quiz_complete: {
+    quiz_variant: QuizVariant;
     result: QuizResult;
     score: number;
     questions_answered: number;
@@ -49,15 +52,16 @@ type QuizEvents = {
     seconds_visible: number;
   };
   /** The lead-capture / success modal is shown. */
-  lead_form_view: { variant: LeadVariant };
+  lead_form_view: { quiz_variant: QuizVariant; variant: LeadVariant };
   /** Lead submitted successfully — the primary conversion (GA4 recommended name). */
   generate_lead: {
+    quiz_variant: QuizVariant;
     variant: LeadVariant;
     marketing_consent: boolean;
     has_zip: boolean;
   };
   /** Lead submission failed server-side — otherwise invisible lead loss. */
-  lead_submit_error: { variant: LeadVariant };
+  lead_submit_error: { quiz_variant: QuizVariant; variant: LeadVariant };
   /** Answer grading threw (server unreachable) — a reliability signal. */
   grade_error: { question_number: number };
 };

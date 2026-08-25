@@ -1,7 +1,7 @@
 "use client";
 
-import { PASS_THRESHOLD } from "@/lib/quiz/state";
 import type { AnsweredQuestion, QuizStatus } from "@/lib/quiz/types";
+import { useQuizConfig } from "./QuizConfigContext";
 import { StarMark } from "./Wordmark";
 
 interface ResultScreenProps {
@@ -17,6 +17,7 @@ export default function ResultScreen({
   correct,
   onRetry,
 }: ResultScreenProps) {
+  const { passThreshold } = useQuizConfig();
   const passed = status === "PASSED";
   const answered = results.length;
   const accent = passed ? "var(--correct)" : "var(--wrong)";
@@ -40,7 +41,7 @@ export default function ResultScreen({
           </h2>
           {passed && (
             <p className="mx-auto mt-3 max-w-md font-body text-[0.975rem] leading-relaxed text-paper/90">
-              You reached {PASS_THRESHOLD} correct answers — that&apos;s a
+              You reached {passThreshold} correct answers — that&apos;s a
               passing score on the civics test.
             </p>
           )}
@@ -49,7 +50,7 @@ export default function ResultScreen({
         <div className="grid grid-cols-3 divide-x divide-line border-b border-line">
           <Stat label="Correct" value={correct} tone="var(--correct)" />
           <Stat label="Answered" value={answered} tone="var(--ink)" />
-          <Stat label="To pass" value={PASS_THRESHOLD} tone="var(--brand)" />
+          <Stat label="To pass" value={passThreshold} tone="var(--brand)" />
         </div>
 
         <div className="px-6 py-6 sm:px-8">
@@ -57,7 +58,7 @@ export default function ResultScreen({
             <div className="mb-6 space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
               <p>
                 If this scenario was real, you&apos;d get one more shot to
-                answer {PASS_THRESHOLD}{" "}
+                answer {passThreshold}{" "}
                 questions correctly at a second interview.
                 Don&apos;t feel bad—these questions are from the real U.S.
                 citizenship civics test, and two-thirds of Americans can&apos;t

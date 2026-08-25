@@ -13,15 +13,15 @@ which forwards them to GA4. Events are defined and typed in
 
 | Event | Fires when | Params |
 | --- | --- | --- |
-| `quiz_start` | Start modal confirmed | `lead_capture` (bool) |
-| `question_answered` | Each graded answer | `question_number` (1–20), `result` (`correct`/`incorrect`), `correct_count` |
-| `quiz_complete` | Quiz reaches pass/fail | `result` (`passed`/`failed`), `score`, `questions_answered` |
+| `quiz_start` | Start modal confirmed | `quiz_variant` (`exam`/`civics`/`trivia`), `lead_capture` (bool) |
+| `question_answered` | Each graded answer | `question_number` (1–20, or 1–5 on `/trivia`), `result` (`correct`/`incorrect`), `correct_count` |
+| `quiz_complete` | Quiz reaches pass/fail | `quiz_variant`, `result` (`passed`/`failed`), `score`, `questions_answered` |
 | `quiz_give_up` | "Give Up" clicked mid-quiz | `question_number`, `correct_count` |
 | `interstitial_view` | A between-questions message is shown | `message_id`, `kind` (`welcome`/`quote`), `question_number` (the one after the break) |
 | `interstitial_skip` | User leaves the break to resume | `message_id`, `kind`, `question_number`, `seconds_visible` |
-| `lead_form_view` | Success/give-up modal shown | `variant` (`pass`/`giveup`) |
-| `generate_lead` | Lead submitted successfully | `variant`, `marketing_consent` (bool), `has_zip` (bool) |
-| `lead_submit_error` | Lead submission failed server-side | `variant` |
+| `lead_form_view` | Success/give-up modal shown | `quiz_variant`, `variant` (`pass`/`fail`/`giveup`) |
+| `generate_lead` | Lead submitted successfully | `quiz_variant`, `variant`, `marketing_consent` (bool), `has_zip` (bool) |
+| `lead_submit_error` | Lead submission failed server-side | `quiz_variant`, `variant` |
 | `grade_error` | Answer grading threw (server unreachable) | `question_number` |
 
 `generate_lead` is a GA4 *recommended* event name and is the primary conversion.
@@ -29,18 +29,26 @@ which forwards them to GA4. Events are defined and typed in
 ## Funnels
 
 - **Engagement:** `quiz_start` → `question_answered` (by `question_number`) → `quiz_complete`
-- **Conversion:** `lead_form_view` → `generate_lead`, split by `variant` (pass vs giveup)
+- **Conversion:** `lead_form_view` → `generate_lead`, split by `variant` (pass vs fail vs giveup)
 
-The two route variants (`/exam` vs `/civics`) are distinguishable in GA4 via the
-built-in `page_path` dimension; `/exam` also carries `lead_capture: true` on
-`quiz_start`.
+Two different "variant" params travel together — keep them straight:
+
+- **`quiz_variant`** — which route the session ran on (`exam` / `civics` / `trivia`).
+  Carried on `quiz_start`, `quiz_complete`, `lead_form_view`, `generate_lead`,
+  `lead_submit_error`. Use it to compare conversion across routes without leaning
+  on `page_path` (which is also available, but breaks if a path is ever renamed).
+- **`variant`** — which message the lead form carried (`pass` / `fail` / `giveup`).
+
+`variant: "fail"` only appears on variants that capture leads from everyone who
+finishes (`/trivia`); on `/exam` a losing score never opens the form, so its
+conversion denominator is passes plus give-ups only.
 
 ## One-time GTM setup (container GTM-K3TTLZS)
 
 For each event above, forward the dataLayer push to GA4:
 
 1. **Variables → New → Data Layer Variable** for each param you want to send
-   (e.g. `question_number`, `result`, `score`, `variant`, `marketing_consent`,
+   (e.g. `question_number`, `result`, `score`, `quiz_variant`, `variant`, `marketing_consent`,
    `has_zip`, `correct_count`, `questions_answered`, `lead_capture`,
    `message_id`, `kind`, `seconds_visible`).
 2. **Triggers → New → Custom Event.** Use event name `quiz_start`, etc., or a
@@ -61,7 +69,7 @@ For each event above, forward the dataLayer push to GA4:
 
 1. **Admin → Custom definitions → Create custom dimension** (event-scoped) for the
    params you want to report on:
-   `result`, `question_number`, `variant`, `marketing_consent`, `has_zip`,
+   `result`, `question_number`, `quiz_variant`, `variant`, `marketing_consent`, `has_zip`,
    `lead_capture`. (Event params are not queryable in standard reports until
    registered; GA4 caps event-scoped dimensions at 50.)
 2. **Admin → Key events → mark `generate_lead`** as a key event (conversion).

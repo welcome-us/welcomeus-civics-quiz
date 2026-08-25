@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PASS_THRESHOLD, TOTAL_QUESTIONS } from "@/lib/quiz/state";
+import { useQuizConfig } from "./QuizConfigContext";
 import { StarMark } from "./Wordmark";
 
 export interface SuccessFormData {
@@ -17,7 +17,14 @@ export interface SuccessSubmitResult {
   message?: string;
 }
 
-export type CaptureVariant = "pass" | "giveup";
+/**
+ * Which message sits above the (identical) lead-capture form:
+ *   pass   — finished at or above the pass bar
+ *   fail   — finished below it; only reachable on variants that capture leads
+ *            from everyone who completes the quiz (VariantConfig.leadOnFinish)
+ *   giveup — bailed out mid-quiz
+ */
+export type CaptureVariant = "pass" | "fail" | "giveup";
 
 interface SuccessModalProps {
   open: boolean;
@@ -53,6 +60,7 @@ export default function SuccessModal({
   onSubmit,
   onClose,
 }: SuccessModalProps) {
+  const { totalQuestions, passThreshold } = useQuizConfig();
   const [data, setData] = useState<SuccessFormData>(EMPTY);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -106,6 +114,9 @@ export default function SuccessModal({
   // The no-form give-up case (/civics) points users to the Citizen Guide
   // program instead of capturing a lead — its own copy and CTA, no submission.
   const citizenGuide = !leadCapture && variant === "giveup";
+  // "fail" and "giveup" share the consolation copy: in both the user is
+  // leaving without a passing score, and the reason why doesn't change the ask.
+  const passed = variant === "pass";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,13 +166,13 @@ export default function SuccessModal({
             <StarMark className="h-36 w-36 text-[#0D3FF7]" />
           </div>
           <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
-            {variant === "pass" ? "You passed" : "No worries"}
+            {passed ? "You passed" : "No worries"}
           </p>
           <h2
             id="success-title"
             className="mt-2 font-display text-3xl font-normal leading-tight"
           >
-            {variant === "pass"
+            {passed
               ? "Congrats, you passed!"
               : "The citizenship test is tough."}
           </h2>
@@ -169,10 +180,10 @@ export default function SuccessModal({
 
         <form onSubmit={handleSubmit} className="px-7 py-6">
           <div id="success-desc" className="space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
-            {variant === "pass" ? (
+            {passed ? (
               <p>
                 You&apos;re as American as fireworks on the Fourth of July! You
-                answered at least {PASS_THRESHOLD} out of {TOTAL_QUESTIONS}{" "}
+                answered at least {passThreshold} out of {totalQuestions}{" "}
                 questions correctly—the score needed to pass the U.S. citizenship
                 exam. Now share this quiz with family and friends to see if they
                 have what it takes to pass the citizenship test—and take the
@@ -186,6 +197,14 @@ export default function SuccessModal({
                 alone. The Citizen Guide program virtually pairs a green card
                 holder with a volunteer, and they study together, one question at
                 a time. You might be surprised what you take away from it.
+              </p>
+            ) : variant === "fail" ? (
+              <p>
+                {/* TODO: share the give-up copy's rewrite when it lands */}
+                You made it all the way through—most people need a few rounds of
+                practice before they&apos;re ready. Leave your details and
+                we&apos;ll send you study tips and resources so you can pass it
+                next time.
               </p>
             ) : (
               <p>
@@ -298,7 +317,7 @@ export default function SuccessModal({
                 >
                   {isSubmitting
                     ? "Sending..."
-                    : variant === "pass"
+                    : passed
                       ? "Join newsletter →"
                       : "Join our newsletter →"}
                 </button>

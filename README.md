@@ -20,18 +20,42 @@ npm run dev                  # http://localhost:3000
 
 ## Variants
 
-The quiz ships as two route-selected variants off a **single engine** — there is
+The quiz ships as three route-selected variants off a **single engine** — there is
 no duplicated quiz logic. The only thing that differs is one config table.
 
-- **`/exam`** — lead-gen: a passing score opens the lead-capture form (posts to Salesforce).
-- **`/civics`** — no form: a passing score opens a congrats-only modal; give-up shows the Citizen Guide CTA.
+| Route | Questions | To pass | Breaks | Lead form |
+|---|---|---|---|---|
+| **`/exam`** | 20 | 12 | yes | on a passing score (posts to Salesforce) |
+| **`/civics`** | 20 | 12 | yes | never — a congrats-only modal; give-up shows the Citizen Guide CTA |
+| **`/trivia`** | 5 | 3 | no | for **everyone who finishes**, pass or fail |
+
 - **`/`** — 307 redirect to `/exam` (incoming query/UTMs preserved).
 
-Variant behavior lives in [lib/quiz/variants.ts](lib/quiz/variants.ts) — a
-`leadCapture` flag per variant. Each route page ([app/exam/page.tsx](app/exam/page.tsx),
-[app/civics/page.tsx](app/civics/page.tsx)) is a thin wrapper that renders the
-shared `QuizApp` with its variant config. Adding a third flavor means editing the
+Variant behavior lives in [lib/quiz/variants.ts](lib/quiz/variants.ts). Each route
+page ([app/exam/page.tsx](app/exam/page.tsx), [app/civics/page.tsx](app/civics/page.tsx),
+[app/trivia/page.tsx](app/trivia/page.tsx)) is a thin wrapper that renders the
+shared `QuizApp` with its variant config. Adding another flavor means editing the
 config table, not forking components.
+
+The config is published to the component tree by `QuizConfigProvider`
+([app/components/QuizConfigContext.tsx](app/components/QuizConfigContext.tsx)) and
+read with `useQuizConfig()`. Anything that renders a count, a pass bar, or a
+question number pulls it from there — no component imports a hardcoded total.
+
+Two knobs are worth calling out, both set for `/trivia`:
+
+- **`endEarly: false`** — the session runs its full length instead of resolving
+  the moment the outcome is locked in. On a 5-question quiz, stopping at 3
+  correct would cut it in half.
+- **`maxEasy: 1`** — caps EASY-tagged questions per session, so a short quiz
+  can't be won on the gentlest questions in the bank. Note that only `EASY` is
+  tagged in [data/questions.json](data/questions.json) (16 of 120 gradeable
+  questions); everything else has no `difficulty` field, so the cap really reads
+  as "one tagged-easy question, the rest untagged". Every variant still *opens*
+  with an easy question when one is available.
+
+Both defaults (`endEarly: true`, no cap) preserve the original 20-question
+behavior exactly.
 
 ## User flow
 
@@ -41,9 +65,11 @@ Start modal → Question → Feedback ─┬─ terminal (pass/auto-fail) → Re
                   └────────────────┴─ next question ─────────────┘
 ```
 
-Every 3–4 answered questions the quiz pauses on an **interstitial** — a Welcoming
-message or study tip on a dark canvas, with artwork and a one-click skip. It is a
-breather, never a gate:
+On the 20-question variants, every 3–4 answered questions the quiz pauses on an
+**interstitial** — a Welcoming message or study tip on a dark canvas, with artwork
+and a one-click skip. It is a breather, never a gate. (`/trivia` sets
+`interstitials: false` and gets an empty schedule — five questions are short
+enough that a break would interrupt rather than relieve.)
 
 - **Cadence and content** live in [lib/quiz/interstitials.ts](lib/quiz/interstitials.ts):
   a bucket of 12 typed messages plus `planInterstitials()`, which draws a fresh
@@ -51,7 +77,7 @@ breather, never a gate:
   per step so the rhythm isn't metronomic.
 - **Never before the result.** The terminal (win / auto-fail) check runs first, so
   a break can't stand between a user and their score. Nothing is scheduled at
-  question 20 either.
+  the final question either.
 - **Always skippable** — a primary "Skip to question *N*" button, auto-focused so
   Enter works immediately, plus Escape.
 - **Dark theme** is a token flip: the card sets `data-theme="dark"` on `<html>`

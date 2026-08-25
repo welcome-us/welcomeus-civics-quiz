@@ -3,6 +3,8 @@
 import { useState } from "react";
 import type { AnsweredQuestion } from "@/lib/quiz/types";
 import { INTERSTITIALS } from "@/lib/quiz/interstitials";
+import { VARIANTS, type QuizVariant } from "@/lib/quiz/variants";
+import { QuizConfigProvider } from "@/app/components/QuizConfigContext";
 import StartModal from "@/app/components/StartModal";
 import SuccessModal from "@/app/components/SuccessModal";
 import ResultScreen from "@/app/components/ResultScreen";
@@ -25,7 +27,7 @@ const MOCK_RESULTS: AnsweredQuestion[] = [
 type State =
   | { kind: "none" }
   | { kind: "start" }
-  | { kind: "success"; variant: "pass" | "giveup"; leadCapture: boolean }
+  | { kind: "success"; variant: "pass" | "fail" | "giveup"; leadCapture: boolean }
   | { kind: "result"; status: "PASSED" | "FAILED" }
   | { kind: "interstitial" };
 
@@ -33,6 +35,7 @@ const STATES: { label: string; state: State }[] = [
   { label: "Start modal", state: { kind: "start" } },
   { label: "Success · pass · lead form", state: { kind: "success", variant: "pass", leadCapture: true } },
   { label: "Success · pass · no form", state: { kind: "success", variant: "pass", leadCapture: false } },
+  { label: "Success · fail · lead form", state: { kind: "success", variant: "fail", leadCapture: true } },
   { label: "Success · give up · lead form", state: { kind: "success", variant: "giveup", leadCapture: true } },
   { label: "Success · give up · no form", state: { kind: "success", variant: "giveup", leadCapture: false } },
   { label: "Result · passed", state: { kind: "result", status: "PASSED" } },
@@ -41,16 +44,22 @@ const STATES: { label: string; state: State }[] = [
 ];
 
 export default function PreviewPage() {
-  if (process.env.NODE_ENV === "production") return null;
-
   const [state, setState] = useState<State>(STATES[0].state);
+  // Which variant's counts the screens render with — the copy interpolates
+  // them, so /trivia's 5-question framing is worth eyeballing here too.
+  const [variant, setVariant] = useState<QuizVariant>("exam");
   // Which message the interstitial preview is showing — its skip button cycles
   // through the whole bucket so all 12 can be read in one pass.
   const [messageIndex, setTipIndex] = useState(0);
   const noop = () => {};
   const close = () => setState({ kind: "none" });
 
+  // Bail after the hooks, never before — an early return above them would make
+  // the hook order differ between builds, which is what rules-of-hooks forbids.
+  if (process.env.NODE_ENV === "production") return null;
+
   return (
+    <QuizConfigProvider config={VARIANTS[variant]}>
     <div className="relative z-10 min-h-dvh">
       {/* Toolbar sits above the z-50 modals so it's always reachable. */}
       <div className="fixed inset-x-0 top-0 z-[60] border-b border-line bg-surface/95 backdrop-blur">
@@ -72,10 +81,24 @@ export default function PreviewPage() {
               </button>
             );
           })}
+          <label className="ml-auto flex items-center gap-2 font-ui text-xs text-ink-soft">
+            Variant
+            <select
+              value={variant}
+              onChange={(e) => setVariant(e.target.value as QuizVariant)}
+              className="rounded-full border border-line bg-surface px-3 py-1.5 font-ui text-xs font-medium text-ink-soft"
+            >
+              {(Object.keys(VARIANTS) as QuizVariant[]).map((v) => (
+                <option key={v} value={v}>
+                  /{v} · {VARIANTS[v].totalQuestions}q
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             type="button"
             onClick={close}
-            className="ml-auto rounded-full border border-line px-3 py-1.5 font-ui text-xs font-medium text-ink-soft transition-colors hover:bg-paper-deep"
+            className="rounded-full border border-line px-3 py-1.5 font-ui text-xs font-medium text-ink-soft transition-colors hover:bg-paper-deep"
           >
             Close
           </button>
@@ -111,11 +134,12 @@ export default function PreviewPage() {
           <ResultScreen
             status={state.status}
             results={MOCK_RESULTS}
-            correct={state.status === "PASSED" ? 12 : 3}
+            correct={state.status === "PASSED" ? VARIANTS[variant].passThreshold : 1}
             onRetry={noop}
           />
         )}
       </main>
     </div>
+    </QuizConfigProvider>
   );
 }
