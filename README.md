@@ -118,6 +118,25 @@ Copy [.env.example](.env.example) to `.env.local`. Both are read at **runtime**
 | `SF_ENDPOINT`       | yes (for `/exam`) | lead submissions fail; **no leads captured**         |
 | `ANTHROPIC_API_KEY` | recommended       | grading falls back to the deterministic matcher      |
 
+## Dependency overrides
+
+`package.json` carries an `overrides` block. JSON has no comments, so the reasons
+live here — **check each one before removing it**, and drop it once the upstream
+constraint relaxes.
+
+| Override | Why |
+| --- | --- |
+| `postcss: ^8.5.26` | `next` pins `postcss` to exactly `8.4.31`, which is below the fix for four sourceMappingURL file-read advisories. Bumping `next` alone does **not** move it. |
+| `sharp: ^0.35.3` | `next` declares `sharp: ^0.34.5`, and `^0.34.x` excludes `0.35.0` — where the libvips CVEs are fixed. Only an override crosses that boundary. |
+| `nanoid: ^3.3.18` | Pulled in by `postcss`; the patched line is `3.3.18`. |
+
+Verified when these were added: the `postcss` bump produces **byte-identical**
+compiled CSS (only Next's own font asset hashes change), and Next drives
+`sharp@0.35.3` through `/_next/image` to a valid optimized WebP.
+
+Note the app itself only ships SVGs (static imports, `dangerouslyAllowSVG` off),
+so `sharp` does almost no work here in practice.
+
 ## Deployment
 
 Hosted on Vercel; `master` is the Production branch and serves the subdomain.
