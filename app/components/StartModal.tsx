@@ -10,38 +10,9 @@ interface StartModalProps {
   onCancel: () => void;
 }
 
-// The rules depend on the variant's counts and on whether it stops early, so
-// they are built per render rather than living at module scope.
-function buildRules({
-  totalQuestions,
-  passThreshold,
-  endEarly,
-}: {
-  totalQuestions: number;
-  passThreshold: number;
-  endEarly: boolean;
-}) {
-  return [
-    {
-      label: `${totalQuestions} questions`,
-      detail: "Drawn at random from the official USCIS civics bank.",
-    },
-    {
-      label: `${passThreshold} correct to pass`,
-      detail: endEarly
-        ? "The test ends early the moment you pass — or can no longer pass."
-        : "You'll answer every question, whatever your running score.",
-    },
-    {
-      label: "Answer in your own words",
-      detail: "Type your answer. Spelling and phrasing don't need to be perfect.",
-    },
-  ];
-}
-
 export default function StartModal({ open, onConfirm, onCancel }: StartModalProps) {
-  const { totalQuestions, passThreshold, endEarly } = useQuizConfig();
-  const rules = buildRules({ totalQuestions, passThreshold, endEarly });
+  const { copy } = useQuizConfig();
+  const { eyebrow, headline, body, rules } = copy.start;
   const confirmRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -103,33 +74,35 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
             <StarMark className="h-36 w-36 text-[#0D3FF7]" />
           </div>
           <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
-            Naturalization Practice
+            {eyebrow}
           </p>
           <h2
             id="start-title"
             className="mt-2 font-display text-3xl font-normal leading-tight"
           >
-            Could you pass a U.S. citizenship exam?
+            {headline}
           </h2>
         </div>
 
         <div className="px-7 py-6">
-          <p id="start-desc" className="font-body text-[0.975rem] leading-relaxed text-ink-soft">
-            As the United States marks its 250th birthday, put your civics
-            knowledge to the test. You'll answer {totalQuestions} open-ended
-            questions – the same format used in the real citizenship exam. Think
-            you have what it takes to earn American citizenship? Let's find out!
-          </p>
+          <div
+            id="start-desc"
+            className="space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft"
+          >
+            {body.map((para) => (
+              <p key={para.text}>{para.text}</p>
+            ))}
+          </div>
 
           <ul className="mt-5 space-y-3">
             {rules.map((rule) => (
-              <li key={rule.label} className="flex gap-3">
+              <li key={rule.lead} className="flex gap-3">
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                   <StarMark className="h-3 w-3" />
                 </span>
-                <span className="font-body text-sm leading-relaxed text-ink">
-                  <span className="font-semibold">{rule.label}.</span>{" "}
-                  <span className="text-ink-soft">{rule.detail}</span>
+                <span className="font-body text-sm leading-relaxed text-ink-soft">
+                  <span className="font-semibold text-ink">{rule.lead}</span>
+                  {rule.rest}
                 </span>
               </li>
             ))}

@@ -42,6 +42,14 @@ The config is published to the component tree by `QuizConfigProvider`
 read with `useQuizConfig()`. Anything that renders a count, a pass bar, or a
 question number pulls it from there — no component imports a hardcoded total.
 
+**Copy that diverges by route** lives in [lib/quiz/copy.ts](lib/quiz/copy.ts),
+keyed the same way and reachable as `useQuizConfig().copy`. It covers the start
+card and the four exit-card messages (`pass`, `fail`, `giveup`, and the /civics
+`citizenGuide` card); everything else stays in the components. `variantCopy()`
+takes the config, so counts interpolate rather than being typed twice — edit a
+`totalQuestions` and the prose follows. `/trivia` overrides the start card and
+the pass/fail exits; it inherits the rest.
+
 Two knobs are worth calling out, both set for `/trivia`:
 
 - **`endEarly: false`** — the session runs its full length instead of resolving

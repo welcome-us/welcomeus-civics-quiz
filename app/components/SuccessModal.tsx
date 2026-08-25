@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useQuizConfig } from "./QuizConfigContext";
+import type { Paragraph } from "@/lib/quiz/copy";
 import { StarMark } from "./Wordmark";
 
 export interface SuccessFormData {
@@ -60,7 +61,7 @@ export default function SuccessModal({
   onSubmit,
   onClose,
 }: SuccessModalProps) {
-  const { totalQuestions, passThreshold } = useQuizConfig();
+  const { copy } = useQuizConfig();
   const [data, setData] = useState<SuccessFormData>(EMPTY);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -114,9 +115,9 @@ export default function SuccessModal({
   // The no-form give-up case (/civics) points users to the Citizen Guide
   // program instead of capturing a lead — its own copy and CTA, no submission.
   const citizenGuide = !leadCapture && variant === "giveup";
-  // "fail" and "giveup" share the consolation copy: in both the user is
-  // leaving without a passing score, and the reason why doesn't change the ask.
-  const passed = variant === "pass";
+  // One of the four exit messages, picked by outcome. The Citizen Guide card is
+  // its own entry because /civics answers a give-up with a program CTA, not a form.
+  const card = citizenGuide ? copy.citizenGuide : copy[variant];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -166,56 +167,27 @@ export default function SuccessModal({
             <StarMark className="h-36 w-36 text-[#0D3FF7]" />
           </div>
           <p className="font-ui text-xs font-semibold uppercase tracking-[0.22em] text-paper/80">
-            {passed ? "You passed" : "No worries"}
+            {card.eyebrow}
           </p>
           <h2
             id="success-title"
             className="mt-2 font-display text-3xl font-normal leading-tight"
           >
-            {passed
-              ? "Congrats, you passed!"
-              : "The citizenship test is tough."}
+            {card.headline}
           </h2>
         </div>
 
         <form onSubmit={handleSubmit} className="px-7 py-6">
           <div id="success-desc" className="space-y-3 font-body text-[0.975rem] leading-relaxed text-ink-soft">
-            {passed ? (
-              <p>
-                You&apos;re as American as fireworks on the Fourth of July! You
-                answered at least {passThreshold} out of {totalQuestions}{" "}
-                questions correctly—the score needed to pass the U.S. citizenship
-                exam. Now share this quiz with family and friends to see if they
-                have what it takes to pass the citizenship test—and take the
-                opportunity to brag about your civics knowledge!
+            {card.body.map((para: Paragraph) => (
+              <p key={para.text}>
+                {para.lead && (
+                  <span className="font-semibold text-ink">{para.lead}</span>
+                )}
+                {para.text}
               </p>
-            ) : citizenGuide ? (
-              <p>
-                You&apos;re not alone in feeling stumped. Most Americans born here
-                could not pass this exam. Now imagine the pressure of testing with
-                your future riding on the answers. Nobody should have to study
-                alone. The Citizen Guide program virtually pairs a green card
-                holder with a volunteer, and they study together, one question at
-                a time. You might be surprised what you take away from it.
-              </p>
-            ) : variant === "fail" ? (
-              <p>
-                {/* TODO: share the give-up copy's rewrite when it lands */}
-                You made it all the way through—most people need a few rounds of
-                practice before they&apos;re ready. Leave your details and
-                we&apos;ll send you study tips and resources so you can pass it
-                next time.
-              </p>
-            ) : (
-              <p>
-                {/* TODO: replace with final give-up copy */}
-                No shame in stepping away—most people need a few rounds of
-                practice before they&apos;re ready. Leave your details and
-                we&apos;ll send you study tips and resources so you can pick up
-                where you left off and pass it next time.
-              </p>
-            )}
-            {!citizenGuide && (
+            ))}
+            {card.welcomeLink && (
               <p>
                 Find out more about what it takes to earn American citizenship at{" "}
                 <a
@@ -317,7 +289,7 @@ export default function SuccessModal({
                 >
                   {isSubmitting
                     ? "Sending..."
-                    : passed
+                    : variant === "pass"
                       ? "Join newsletter →"
                       : "Join our newsletter →"}
                 </button>
