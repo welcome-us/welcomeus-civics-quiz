@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useMemo } from "react";
 import { VARIANTS, type VariantConfig } from "@/lib/quiz/variants";
+import { variantCopy, type VariantCopy } from "@/lib/quiz/copy";
 
 // The active variant's config, shared with every component that renders a
 // count, a pass bar, or a question number.
@@ -13,7 +14,13 @@ import { VARIANTS, type VariantConfig } from "@/lib/quiz/variants";
 // `passThreshold` through every one of them would add noise to signatures that
 // otherwise describe a single question.
 
-const QuizConfigContext = createContext<VariantConfig>(VARIANTS.exam);
+/** The config plus the copy that belongs to it, resolved once per variant. */
+export type QuizConfig = VariantConfig & { copy: VariantCopy };
+
+const QuizConfigContext = createContext<QuizConfig>({
+  ...VARIANTS.exam,
+  copy: variantCopy(VARIANTS.exam),
+});
 
 export function QuizConfigProvider({
   config,
@@ -22,8 +29,12 @@ export function QuizConfigProvider({
   config: VariantConfig;
   children: React.ReactNode;
 }) {
+  // Copy is derived from the config (counts interpolate into it), so it is
+  // resolved here rather than at every call site.
+  const value = useMemo(() => ({ ...config, copy: variantCopy(config) }), [config]);
+
   return (
-    <QuizConfigContext.Provider value={config}>
+    <QuizConfigContext.Provider value={value}>
       {children}
     </QuizConfigContext.Provider>
   );
@@ -34,6 +45,6 @@ export function QuizConfigProvider({
  * rendered outside a provider (the /preview gallery did this before it wrapped
  * itself) still gets sensible numbers instead of throwing.
  */
-export function useQuizConfig(): VariantConfig {
+export function useQuizConfig(): QuizConfig {
   return useContext(QuizConfigContext);
 }
