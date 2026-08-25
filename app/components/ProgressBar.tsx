@@ -1,7 +1,7 @@
 "use client";
 
-import { PASS_THRESHOLD, TOTAL_QUESTIONS } from "@/lib/quiz/state";
 import type { AnsweredQuestion } from "@/lib/quiz/types";
+import { useQuizConfig } from "./QuizConfigContext";
 
 interface ProgressBarProps {
   /** Zero-based index of the question currently on screen. */
@@ -12,12 +12,14 @@ interface ProgressBarProps {
 
 /**
  * A progress indicator with two parts: a continuous fill (how far through the
- * 20 questions) and a row of 20 segment pips coloured by outcome — green for
- * correct, coral for wrong, with the active question highlighted.
+ * session) and a row of one pip per question, coloured by outcome — green for
+ * correct, coral for wrong, with the active question highlighted. Both scale to
+ * the variant's question count, so 5 pips stretch the same track as 20.
  */
 export default function ProgressBar({ current, results, correct }: ProgressBarProps) {
+  const { totalQuestions, passThreshold } = useQuizConfig();
   const answered = results.length;
-  const pct = Math.round((answered / TOTAL_QUESTIONS) * 100);
+  const pct = Math.round((answered / totalQuestions) * 100);
 
   return (
     <div className="w-full">
@@ -25,14 +27,14 @@ export default function ProgressBar({ current, results, correct }: ProgressBarPr
         <p className="font-ui text-sm font-semibold tracking-wide text-ink">
           Question{" "}
           <span className="tabular-nums">
-            {Math.min(current + 1, TOTAL_QUESTIONS)}
+            {Math.min(current + 1, totalQuestions)}
           </span>{" "}
-          <span className="text-ink-faint">of {TOTAL_QUESTIONS}</span>
+          <span className="text-ink-faint">of {totalQuestions}</span>
         </p>
         <p className="font-ui text-sm text-ink-soft">
           <span className="font-semibold tabular-nums text-correct">{correct}</span>{" "}
           correct
-          <span className="text-ink-faint"> · need {PASS_THRESHOLD}</span>
+          <span className="text-ink-faint"> · need {passThreshold}</span>
         </p>
       </div>
 
@@ -46,7 +48,7 @@ export default function ProgressBar({ current, results, correct }: ProgressBarPr
 
       {/* Per-question pips */}
       <div className="mt-2 flex gap-[3px]" aria-hidden="true">
-        {Array.from({ length: TOTAL_QUESTIONS }).map((_, i) => {
+        {Array.from({ length: totalQuestions }).map((_, i) => {
           const result = results[i];
           const isActive = i === current && !result;
           const color = result

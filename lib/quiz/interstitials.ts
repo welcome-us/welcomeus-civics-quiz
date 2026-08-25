@@ -9,7 +9,7 @@
 // the scheduling logic reads the bucket generically and adapts to any length,
 // so adding or cutting messages needs no code change.
 
-import { shuffle, TOTAL_QUESTIONS } from "./state";
+import { shuffle } from "./state";
 
 /**
  * Which piece of Welcome.US artwork the card draws. Every value here needs a
@@ -155,7 +155,7 @@ function randomGap(): number {
  * stand between the user and their score.
  */
 export function planInterstitials(
-  total: number = TOTAL_QUESTIONS,
+  total: number,
   pool: readonly InterstitialMessage[] = INTERSTITIALS,
 ): Map<number, InterstitialMessage> {
   const picks = shuffle(pool);

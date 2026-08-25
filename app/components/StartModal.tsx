@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { PASS_THRESHOLD, TOTAL_QUESTIONS } from "@/lib/quiz/state";
+import { useQuizConfig } from "./QuizConfigContext";
 import { StarMark } from "./Wordmark";
 
 interface StartModalProps {
@@ -10,22 +10,38 @@ interface StartModalProps {
   onCancel: () => void;
 }
 
-const RULES = [
-  {
-    label: `${TOTAL_QUESTIONS} questions`,
-    detail: "Drawn at random from the official USCIS civics bank.",
-  },
-  {
-    label: `${PASS_THRESHOLD} correct to pass`,
-    detail: "The test ends early the moment you pass — or can no longer pass.",
-  },
-  {
-    label: "Answer in your own words",
-    detail: "Type your answer. Spelling and phrasing don't need to be perfect.",
-  },
-];
+// The rules depend on the variant's counts and on whether it stops early, so
+// they are built per render rather than living at module scope.
+function buildRules({
+  totalQuestions,
+  passThreshold,
+  endEarly,
+}: {
+  totalQuestions: number;
+  passThreshold: number;
+  endEarly: boolean;
+}) {
+  return [
+    {
+      label: `${totalQuestions} questions`,
+      detail: "Drawn at random from the official USCIS civics bank.",
+    },
+    {
+      label: `${passThreshold} correct to pass`,
+      detail: endEarly
+        ? "The test ends early the moment you pass — or can no longer pass."
+        : "You'll answer every question, whatever your running score.",
+    },
+    {
+      label: "Answer in your own words",
+      detail: "Type your answer. Spelling and phrasing don't need to be perfect.",
+    },
+  ];
+}
 
 export default function StartModal({ open, onConfirm, onCancel }: StartModalProps) {
+  const { totalQuestions, passThreshold, endEarly } = useQuizConfig();
+  const rules = buildRules({ totalQuestions, passThreshold, endEarly });
   const confirmRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -100,13 +116,13 @@ export default function StartModal({ open, onConfirm, onCancel }: StartModalProp
         <div className="px-7 py-6">
           <p id="start-desc" className="font-body text-[0.975rem] leading-relaxed text-ink-soft">
             As the United States marks its 250th birthday, put your civics
-            knowledge to the test. You'll answer 20 open-ended questions – the
-            same format used in the real citizenship exam. Think you have what
-            it takes to earn American citizenship? Let's find out!
+            knowledge to the test. You'll answer {totalQuestions} open-ended
+            questions – the same format used in the real citizenship exam. Think
+            you have what it takes to earn American citizenship? Let's find out!
           </p>
 
           <ul className="mt-5 space-y-3">
-            {RULES.map((rule) => (
+            {rules.map((rule) => (
               <li key={rule.label} className="flex gap-3">
                 <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent-soft text-accent">
                   <StarMark className="h-3 w-3" />
